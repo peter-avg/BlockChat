@@ -73,14 +73,70 @@ func main() {
             // Make Transaction Function Implementation
             // ========================================
             if c.Bool("t") {
-                if c.NArg() != 2 {
-                    return fmt.Errorf("Not enough arguments to perform a transaction")
+
+                recipient_id := c.Args().Get(0)
+                apiurl := "http://127.0.0.1:9876/blockchat_api/send_transaction"
+                data := url.Values{}
+
+                if recipient_id == "" {
+                    fmt.Println("Usage: -{t,-t} <recipient_address> <message or bitcoin data> : To produce a transaction")
+                    return nil;
                 }
 
-                recipient_address := c.Args().Get(0)
-                //message := c.Args().Get(2)
+                _, err := strconv.ParseFloat(c.Args().Get(1),32)
 
-                fmt.Println("sending message to: " + recipient_address)
+                if err != nil {
+
+                    message := c.Args().Get(1)
+
+                    if message == "" {
+                        fmt.Println("Usage: -{t,-t} <recipient_address> <message or bitcoin data> : To produce a transaction")
+                        return nil;
+                    }
+
+                    data.Set("recipient_id", recipient_id)
+                    data.Set("message_or_bitcoin", "0")
+                    data.Set("data", message)
+
+                }
+
+                if err == nil {
+                    bc := c.Args().Get(1)
+
+
+                    data.Set("recipient_id", recipient_id)
+                    data.Set("message_or_bitcoin", "1")
+                    data.Set("data", bc)
+                }
+
+
+                r, err := http.NewRequest("POST", apiurl, strings.NewReader(data.Encode()))
+                if err != nil {
+                    fmt.Println("Error creating request:", err)
+                    return nil;
+                }
+
+                r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+                client := &http.Client{}
+                resp, err := client.Do(r)
+                if err != nil {
+                    fmt.Println("Error sending request:", err)
+                    return nil;
+                }
+                defer resp.Body.Close()
+
+                if resp.StatusCode == 200 {
+                    fmt.Println("Your transaction has been submitted")
+                } else {
+                    fmt.Println("Failed to submit transaction: ", resp.StatusCode)
+                }
+
+
+
+
+
+
             }
 
             // Set Stake Function Implementation
