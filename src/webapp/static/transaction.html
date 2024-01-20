@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BlockChat - Create a Transaction</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            transition: opacity 0.5s ease;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #16213e;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #e43f5a;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #e0e0e0;
+        }
+
+        input[type="text"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #0f3460;
+            color: #e0e0e0;
+        }
+
+        button {
+            display: inline-block;
+            background-color: #0f3460;
+            color: #e43f5a;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            border: none;
+            transition: background-color 0.3s, transform 0.3s;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #16213e;
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .fade-out {
+            opacity: 0;
+        }
+    </style>
+    <script>
+        window.addEventListener('pageshow', function() {
+            document.body.classList.remove('fade-out');
+        });
+        document.addEventListener("DOMContentLoaded", function() {
+            var transactionTypeSelector = document.getElementById('transactionType');
+            var bitcoinInput = document.getElementById('bitcoinAmount');
+            var messageInput = document.getElementById('message');
+
+            function toggleInputFields() {
+                var transactionType = transactionTypeSelector.value;
+                if (transactionType === 'bitcoin') {
+                    bitcoinInput.classList.remove('hidden');
+                    messageInput.classList.add('hidden');
+                } else if (transactionType === 'message') {
+                    bitcoinInput.classList.add('hidden');
+                    messageInput.classList.remove('hidden');
+                }
+            }
+
+            transactionTypeSelector.addEventListener('change', toggleInputFields);
+            toggleInputFields();
+
+            document.getElementById('transactionForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                var recipient = document.getElementById('recipient').value;
+                var transactionType = transactionTypeSelector.value;
+                var data = transactionType === 'bitcoin' ? bitcoinInput.value : messageInput.value;
+                fetch('http://127.0.0.1:9876/blockchat_api/send_transaction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `recipient_id=${recipient}&message_or_bitcoin=${transactionType === 'bitcoin' ? 1 : 0}&data=${data}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    alert('Transaction successful!');
+                    document.body.classList.add('fade-out');
+                    setTimeout(function() {
+                        window.location.href = 'index.html';
+                    }, 500);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+
+            document.querySelectorAll('a').forEach(function(link) {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    var href = this.getAttribute('href');
+                    document.body.classList.add('fade-out');
+                    setTimeout(function() {
+                        window.location.href = href;
+                    }, 500);
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Create a Transaction</h1>
+        <form id="transactionForm" action="/sendTransaction" method="post">
+            <label for="recipient">Recipient Address:</label>
+            <input type="text" id="recipient" name="recipient" required>
+
+            <label for="transactionType">Transaction Type:</label>
+            <select id="transactionType" name="transactionType">
+                <option value="bitcoin">Bitcoin</option>
+                <option value="message">Message</option>
+            </select>
+
+            <label for="bitcoinAmount" class="hidden">Amount (in Bitcoin):</label>
+            <input type="number" id="bitcoinAmount" name="bitcoinAmount" class="hidden" step="0.0001">
+
+            <label for="message" class="hidden">Message:</label>
+            <textarea id="message" name="message" class="hidden"></textarea>
+
+            <button type="submit">Send Transaction</button>
+        </form>
+    </div>
+</body>
+</html>
+

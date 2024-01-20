@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BlockChat - View Last Block</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            transition: opacity 0.5s ease;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #16213e;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            max-width: 700px;
+        }
+
+        h1 {
+            color: #e43f5a;
+            margin-bottom: 20px;
+        }
+
+        pre {
+            text-align: left;
+            background-color: #0f3460;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: smaller;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .fade-out {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>View Last Block</h1>
+        <pre id="blockData">Loading...</pre>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('http://127.0.0.1:9876/blockchat_api/get_last_block')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+                const blockDataElement = document.getElementById('blockData');
+                if (data && data.last_block) {
+                    blockDataElement.textContent = JSON.stringify(data.last_block, null, 2);
+                } else {
+                    throw new Error('Invalid format of received data');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching last block data:', error);
+                const blockDataElement = document.getElementById('blockData');
+                blockDataElement.textContent = 'Error loading block data: ' + error.message;
+            });
+
+        window.history.pushState({page: "lastblock"}, "lastblock", "#lastblock");
+
+        window.onpopstate = function(event) {
+            if(event.state && event.state.page === "lastblock") {
+                document.body.classList.add('fade-out');
+                setTimeout(function() {
+                    window.location.href = 'index.html';
+                }, 500);
+            }
+        };
+    });
+</script>
+</body>
+</html>
+

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BlockChat - Check Balance</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #16213e;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #e43f5a;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Check Balance</h1>
+        <p>Your current balance is: <span id="balance">Loading...</span></p>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('http://127.0.0.1:9876/blockchat_api/get_balance')
+                .then(response => response.json())
+                .then(data => {
+                    const balanceElement = document.getElementById('balance');
+                    balanceElement.textContent = data.balance + ' BTC';
+                })
+                .catch(error => {
+                    console.error('Error fetching balance:', error);
+                    const balanceElement = document.getElementById('balance');
+                    balanceElement.textContent = 'Error loading balance';
+                });
+        });
+    </script>
+</body>
+</html>
+

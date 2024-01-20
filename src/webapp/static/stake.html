@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BlockChat - Create a Stake</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            transition: opacity 0.5s ease;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #16213e;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #e43f5a;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #e0e0e0;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #0f3460;
+            color: #e0e0e0;
+        }
+
+        button {
+            display: inline-block;
+            background-color: #0f3460;
+            color: #e43f5a;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            border: none;
+            transition: background-color 0.3s, transform 0.3s;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #16213e;
+            transform: scale(1.05);
+        }
+
+        .fade-out {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create a Stake</h1>
+        <form id="stakeForm">
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" name="amount" required>
+            <button type="submit">Stake</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('stakeForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const amount = document.getElementById('amount').value;
+            fetch('http://127.0.0.1:9876/blockchat_api/set_stake', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `stake=${amount}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                alert(`Stake of ${amount} processed`);
+                document.body.classList.add('fade-out');
+                setTimeout(function() {
+                    window.location.href = 'index.html';
+                }, 500);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                var href = this.getAttribute('href');
+                document.body.classList.add('fade-out');
+                setTimeout(function() {
+                    window.location.href = href;
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>
+

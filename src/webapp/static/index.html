@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BlockChat - Home</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            transition: opacity 0.5s ease;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #16213e;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #e43f5a;
+            font-size: 2em;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin: 15px 0;
+        }
+
+        a {
+            display: inline-block;
+            background-color: #0f3460;
+            color: #e43f5a;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        a:hover {
+            background-color: #16213e;
+            transform: scale(1.05);
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('background.jpg') no-repeat center center / cover;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        .fade-out {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to BlockChat</h1>
+        <p>Interact with the BlockChat Application via our web interface.</p>
+        <ul>
+            <li><a href="transaction.html" class="transition-link">Create a Transaction</a></li>
+            <li><a href="stake.html" class="transition-link">Create a Stake</a></li>
+            <li><a href="view.html" class="transition-link">View Last Block</a></li>
+            <li><a href="balance.html" class="transition-link">Check Balance</a></li>
+        </ul>
+    </div>
+
+    <script>
+        window.addEventListener('pageshow', function() {
+            document.body.classList.remove('fade-out');
+        });
+        document.querySelectorAll('.transition-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                document.body.classList.add('fade-out');
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>
+
