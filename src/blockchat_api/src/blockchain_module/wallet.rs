@@ -1,5 +1,8 @@
 use crate::blockchain_module::transaction::Transaction; 
+use serde::{Serialize, Deserialize};
+use serde_json;
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Wallet {
     publickey: i32,
     privatekey: i32,
@@ -17,6 +20,11 @@ impl Wallet {
             balance,
             node_id
         }
+    }
+
+    // Jsonify Wallet Object 
+    pub fn jsonify(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string(self)
     }
 
     // Function to sign a new transaction with user's private key (sender)

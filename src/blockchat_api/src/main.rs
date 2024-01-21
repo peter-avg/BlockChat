@@ -12,5 +12,13 @@ fn main() {
         2,
         "hello".to_string()
         );
-    println!("{:?}", first_transaction);
+
+    // let json = first_transaction.jsonify();
+    // match json {
+    //     Ok(json) => println!("{}",json),
+    //     Err(e) => println!("{}",e),
+    // }
+
+    println!("{}", first_transaction.signature);
+
 }

@@ -1,6 +1,8 @@
 use crate::blockchain_module::transaction::Transaction;
+use serde::{Serialize, Deserialize};
+use serde_json;
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Block {
     pub index: i32,
     pub timestamp: i32,
@@ -14,7 +16,7 @@ impl Block {
     
     // Constructor function for struct Block
     pub fn new(index: i32, timestamp: i32, transactions: Vec<Transaction>,
-                validator: i32, current_hash: i32, previous_hash: i32) -> Block {
+                validator: i32, current_hash: i32, previous_hash: i32) -> Self {
         Block { 
             index,
             timestamp,
@@ -24,6 +26,15 @@ impl Block {
             previous_hash
         }
     }
+
+    // Jsonify Block Object 
+    pub fn jsonify(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string(self)
+    }
+
+
+
+
 
 
 }
