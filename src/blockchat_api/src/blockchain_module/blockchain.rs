@@ -17,8 +17,13 @@ impl Blockchain {
     }
 
     // Jsonify Blockchain Object
-    pub fn jsonify(&self) -> Result<String, serde_json::Error> {
+    pub fn _jsonify(&self) -> Result<String, serde_json::Error> {
         serde_json::to_string(self)
+    }
+
+    // Add a verified block to the block chain
+    pub fn add_block(&mut self, block: Block) {
+        self.chain.push(block);
     }
 
 }
