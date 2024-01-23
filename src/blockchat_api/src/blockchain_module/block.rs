@@ -3,7 +3,7 @@ use sha256::digest;
 use serde::{Serialize, Deserialize};
 use serde_json;
 
-#[derive(Clone,Serialize, Deserialize, Debug)]
+#[derive(Clone,Serialize, Debug)]
 pub struct Block {
     pub index: i32,
     pub timestamp: i64,
@@ -43,9 +43,9 @@ impl Block {
     }
     
     // Adding a transaction in a block, not exceeding its capacity
-    pub fn add_transaction(&mut self, transaction: Transaction, capacity: usize) {
+    pub fn add_transaction(&mut self, transaction: &Transaction, capacity: usize) {
         if self.transactions.len() < capacity {
-            self.transactions.push(transaction);
+            self.transactions.push(transaction.clone());
         }
     }
 

@@ -1,8 +1,8 @@
 use crate::blockchain_module::block::Block;
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 use serde_json;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Debug)]
 pub struct Blockchain { 
     chain: Vec<Block>,
 }
