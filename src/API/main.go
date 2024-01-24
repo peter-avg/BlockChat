@@ -2,23 +2,20 @@ package main
 
 import (
 	"api/blockchain/blockchain"
-	"fmt"
+    "fmt"
 )
 
 func main() {
-    var wallet = blockchain.NewWallet();
 
-    var block = blockchain.NewBlock(1,nil,1,"");
-    
-    var transaction = blockchain.NewTransaction(0,0,true,"",0,0);
+    // Initialising Blockchain
+    chain := blockchain.NewBlockchain();
+    genesis_block := blockchain.NewBlock(0,"1");
+    chain.AddBlock(*genesis_block);
 
-    fmt.Println(block);
-    fmt.Println(transaction);
 
-    transaction.Nonce = wallet.AddTransaction(*transaction);
-    transaction.Signature = wallet.SignTransaction(transaction);
+    node := blockchain.NewNode(1,*chain,nil);
+    nodeinfo := blockchain.NewNodeInfo(1,"127.0.0.1","9867", node.Wallet.PublicKey,0);
+    node.AddNewInfo(*nodeinfo);
 
-    if (wallet.VerifyTransaction(transaction)) {
-        fmt.Println(transaction);
-    }
+    fmt.Println(node.Ring[0]);
 }

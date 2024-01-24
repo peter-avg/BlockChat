@@ -10,9 +10,9 @@ type Blockchain struct {
 }
 
 // NewBlockchain creates a new Blockchain with the given initial blocks
-func NewBlockchain(initialBlocks []Block) *Blockchain {
+func NewBlockchain() *Blockchain {
     return &Blockchain{
-        Chain: initialBlocks,
+        Chain: nil,
     }
 }
 

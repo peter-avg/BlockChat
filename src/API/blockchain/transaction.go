@@ -18,36 +18,38 @@ type Transaction struct {
 	TypeOfTransaction  bool   `json:"type_of_transaction"` // 0 for message, 1 for bcc
 	Data               string `json:"data"`
 	Nonce              int    `json:"nonce"`
-	TransactionID      int    `json:"transaction_id"`
+	TransactionID      string  `json:"transaction_id"`
 	Signature          []byte `json:"signature,omitempty"`
 }
 
 // NewTransaction creates a new Transaction
-func NewTransaction(senderAddress, receiverAddress int, typeOfTransaction bool, data string, nonce, transactionID int) *Transaction {
+func NewTransaction(senderAddress int, receiverAddress int, typeOfTransaction bool, data string, nonce int) *Transaction {
+    
 	return &Transaction{
 		SenderAddress:      senderAddress,
 		ReceiverAddress:    receiverAddress,
 		TypeOfTransaction:  typeOfTransaction,
 		Data:               data,
 		Nonce:              nonce,
-		TransactionID:      transactionID,
+		TransactionID:      "",
 		Signature:          nil,
 	}
 }
 
 // JSONify serializes the Transaction into a JSON string
-func (t *Transaction) JSONify() (string, error) {
+func (t *Transaction) JSONify() string {
 	jsonBytes, err := json.Marshal(t)
-	return string(jsonBytes), err
+    if err != nil {
+        println("Could not jsonify transaction");
+        return ""
+    }
+	return string(jsonBytes)
 }
 
 // Hashify creates a hash for the Transaction object
-func (t *Transaction) Hashify() (string, error) {
-	jsonString, err := t.JSONify()
-	if err != nil {
-		return "", err
-	}
+func (t *Transaction) Hashify() {
+	jsonString := t.JSONify()
 	hash := sha256.Sum256([]byte(jsonString))
-	return hex.EncodeToString(hash[:]), nil
+	t.TransactionID = hex.EncodeToString(hash[:]);
 }
 

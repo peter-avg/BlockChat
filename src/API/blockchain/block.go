@@ -19,15 +19,14 @@ type Block struct {
 }
 
 // NewBlock creates and returns a new Block
-func NewBlock(index int, transactions []Transaction, validator int, previousHash string) *Block {
-    var t = time.Now();
-    var timestamp = t.UnixNano();
-
+func NewBlock(index int, previousHash string) *Block {
+    t := time.Now();
+    timestamp := t.UnixNano();
     return &Block{
         Index:         index,
         Timestamp:     timestamp,
-        Transactions:  transactions,
-        Validator:     validator,
+        Transactions:  nil,
+        Validator:     0,
         PreviousHash:  previousHash,
         CurrentHash:   "",
     }
@@ -46,7 +45,6 @@ func (b *Block) Hashify() {
         fmt.Println("Could not create hash:", err)
         return
     }
-
     hash := sha256.Sum256([]byte(jsonString))
     b.CurrentHash = hex.EncodeToString(hash[:])
 }
