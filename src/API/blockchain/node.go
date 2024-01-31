@@ -84,18 +84,18 @@ func (n *Node) AddBlockchain() {
 }
 
 // Share the Ring with other Nodes
-func (n *Node) ShareRing() {
-    for _, node := range n.Ring {
-        if node.Id == 0 {
-            continue;
-        }
-        node_address := "http://" + node.IP + ":" + node.PORT + "/update_ring";
-        json_string, err := n.JSONify();
-        if err != nil {
-            continue;
-        }
-    }
-}
+// func (n *Node) ShareRing() {
+//     for _, node := range n.Ring {
+//         if node.Id == 0 {
+//             continue;
+//         }
+        // node_address := "http://" + node.IP + ":" + node.PORT + "/update_ring";
+        // json_string, err := n.JSONify();
+        // if err != nil {
+        //     continue;
+        // }
+//     }
+// }
 
 
 

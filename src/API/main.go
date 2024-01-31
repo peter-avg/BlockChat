@@ -1,6 +1,8 @@
 package main
 
 import (
+    "bytes"
+    "encoding/json"
 	"api/blockchain/blockchain"
     "io"
 	"fmt"
@@ -17,13 +19,12 @@ var BOOTSTRAP_PORT string = blockchain.BOOTSTRAP_PORT;
 var CAPACITY int = blockchain.CAPACITY;
 
 func main() {
+
     router := gin.Default();
 
     router.POST("/register_node", blockchain.RegisterNode);
 
     IP,err := blockchain.GetIP();
-
-    log.Println("IP: ", IP);
 
     if err != nil {
         log.Fatal("Could not get IP");
@@ -63,9 +64,16 @@ func main() {
 
         entry_address := "http://" + BOOTSTRAP_IP + ":" + BOOTSTRAP_PORT + "/register_node";
         MyNode.GenerateWallet();
-        // MyNodeInfo := blockchain.NewNodeInfo(0, IP, PORT, MyNode.Wallet.PublicKey,0);
 
-        response, err := http.Post(entry_address, "application/json", nil);
+        requestBody,_ := json.Marshal(map[string]interface{}{
+            "ip": IP,
+            "port": PORT,
+            "modulus": MyNode.Wallet.PublicKey.N,
+            "exponent": MyNode.Wallet.PublicKey.E,
+        })
+
+        response, err := http.Post(entry_address, "application/json", bytes.NewBuffer(requestBody));
+
         if err != nil {
             log.Fatal("Could not connect to Bootstrap Node");
         }
