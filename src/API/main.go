@@ -2,48 +2,26 @@ package main
 
 import (
 	"api/blockchain/blockchain"
+    "io"
 	"fmt"
     "log"
 	// "fmt"
-    "os"
-    "net"
 	"flag"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func GetIP() (string,error) {
-	hostname,err := os.Hostname()
-    if err != nil {
-        return " ", err
-    }
-
-	addresses,err := net.LookupIP(hostname)
-    if err != nil {
-        return " ",err
-    }
-
-	for _, addr := range addresses {
-		if ipv4 := addr.To4(); ipv4 != nil {
-            return ipv4.String(),nil;
-		}
-	}
-
-    return " ",err
-}
-
-var BOOTSTRAP_IP string = "127.0.0.1";
-var BOOTSTRAP_PORT string = "5000";
-var CAPACITY int = 5;
-var MyNode blockchain.Node;
+var MyNode blockchain.Node = blockchain.MyNode;
+var BOOTSTRAP_IP string = blockchain.BOOTSTRAP_IP;
+var BOOTSTRAP_PORT string = blockchain.BOOTSTRAP_PORT;
+var CAPACITY int = blockchain.CAPACITY;
 
 func main() {
-
     router := gin.Default();
 
-    router.GET("/request_entry", RequestEntry);
+    router.POST("/register_node", blockchain.RegisterNode);
 
-    IP,err := GetIP();
+    IP,err := blockchain.GetIP();
 
     log.Println("IP: ", IP);
 
@@ -66,6 +44,7 @@ func main() {
         // Setup the Bootstrap node
         MyNode.Id = 0;
         MyNode.GenerateWallet();
+        log.Println("Bootstrap Node public key: ",MyNode.Wallet.PublicKey);
         MyNodeInfo := blockchain.NewNodeInfo(MyNode.Id, BOOTSTRAP_IP, BOOTSTRAP_PORT, MyNode.Wallet.PublicKey, nodes*1000);
         MyNode.AddNewInfo(MyNodeInfo);
 
@@ -78,27 +57,33 @@ func main() {
         // Insert the Genesis Block into the Blockchain
         MyNode.Chain.AddBlock(*GenesisBlock);
 
+        router.Run(BOOTSTRAP_IP + ":" + BOOTSTRAP_PORT);
+
     } else {
 
-        // entry_address := "http://" + BOOTSTRAP_IP + ":" + BOOTSTRAP_PORT + "/request_entry";
-        // MyNode.GenerateWallet();
+        entry_address := "http://" + BOOTSTRAP_IP + ":" + BOOTSTRAP_PORT + "/register_node";
+        MyNode.GenerateWallet();
         // MyNodeInfo := blockchain.NewNodeInfo(0, IP, PORT, MyNode.Wallet.PublicKey,0);
 
+        response, err := http.Post(entry_address, "application/json", nil);
+        if err != nil {
+            log.Fatal("Could not connect to Bootstrap Node");
+        }
 
+        body, err := io.ReadAll(response.Body)
+        if err != nil {
+           log.Fatalln(err)
+        }
 
+        sb := string(body)
+        log.Printf(sb)
 
+        router.Run(IP + ":" + PORT);
         
     }
 
-    router.Run(IP + ":" + PORT);
 }
 
-func RequestEntry(c *gin.Context) {
-    c.JSON(http.StatusOK, gin.H{
-        "id" : fmt.Sprint(MyNode.Ring[len(MyNode.Ring)-1].Id + 1),
-        "blockchain" : MyNode.Chain,
-    })
-};
 
 
 

@@ -59,3 +59,12 @@ func (w *Wallet) VerifyTransaction(transaction *Transaction) bool {
 	return err == nil
 }
 
+// Deduct money from the wallet
+func (w *Wallet) DeductMoney(Amount *int) {
+    w.Balance -= *Amount;
+}
+
+// Add money to the wallet
+func (w *Wallet) AddMoney(Amount *int) {
+    w.Balance += *Amount;
+}
