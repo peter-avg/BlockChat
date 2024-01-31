@@ -1,11 +1,11 @@
 package blockchain
 
 import (
-    "crypto/sha256"
-    "encoding/hex"
-    "encoding/json"
-    "fmt"
-    "time"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"time"
 )
 
 // Block represents each 'item' in the blockchain

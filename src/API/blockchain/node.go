@@ -12,7 +12,7 @@ type NodeInfo struct {
     IP string `json:"IP"`
     PORT string `json:"PORT"`
 	PublicKey *rsa.PublicKey `json:"PublicKey"`
-    Balance float32 `json:"Balance"`
+    Balance int `json:"Balance"`
 }
 
 // Node struct contains Blockchain info
@@ -26,7 +26,7 @@ type Node struct {
 
 // NewNodeInfo creates and returns a new NodeInfo
 func NewNodeInfo(id int, ip string, port string,
-                 PublicKey *rsa.PublicKey, balance float32) *NodeInfo {
+                 PublicKey *rsa.PublicKey, balance int) *NodeInfo {
     return &NodeInfo {
         Id: id,
         IP: ip, 
@@ -38,10 +38,8 @@ func NewNodeInfo(id int, ip string, port string,
 
 // NewNode creates and returns a new Node
 func NewNode(id int, chain Blockchain, ring []NodeInfo) *Node {
-    wallet := NewWallet();
     return &Node {
         Id: id,
-        Wallet: *wallet,
         Chain: chain,
         Ring: ring,
     }
@@ -71,10 +69,19 @@ func (n *Node) CreateNewBlock() {
 }
 
 // Adding Info for a new Node in Ring
-func (n *Node) AddNewInfo(info NodeInfo) {
-    n.Ring = append(n.Ring, info);
+func (n *Node) AddNewInfo(info *NodeInfo) {
+    n.Ring = append(n.Ring, *info);
 }
 
+// Generating Wallet for Node
+func (n *Node) GenerateWallet() {
+    n.Wallet = *NewWallet();
+}
+
+// Adding the Blockchain inside a Node
+func (n *Node) AddBlockchain() {
+    n.Chain = *NewBlockchain();
+}
 
 
 
