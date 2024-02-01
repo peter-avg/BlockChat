@@ -8,7 +8,8 @@ import (
     "log"
 	// "fmt"
 	"flag"
-	"github.com/gin-gonic/gin"
+	// "github.com/gin-gonic/gin"
+    // "github.com/gin-contrib/cors"
 	"net/http"
 )
 
@@ -19,9 +20,7 @@ var CAPACITY int = blockchain.CAPACITY;
 
 func main() {
 
-    router := gin.Default();
-
-    router.POST("/register_node", RegisterNode);
+    router := InitRouter();
 
     IP,err := blockchain.GetIP();
 
@@ -45,6 +44,7 @@ func main() {
         MyNode.Id = 0;
         MyNode.GenerateWallet();
         MyNodeInfo := blockchain.NewNodeInfo(MyNode.Id, BOOTSTRAP_IP, BOOTSTRAP_PORT, MyNode.Wallet.PublicKey, nodes*1000);
+        MyNode.Wallet.Balance = nodes*1000;
         MyNode.AddNewInfo(MyNodeInfo);
         log.Println(MyNode.Ring)
 
@@ -76,11 +76,10 @@ func main() {
             log.Fatal(err);
         }
 
-        MyNode.Chain, MyNode.Ring, err = blockchain.DeserializeRegisterNodeResponse(response);
+        MyNode.Chain, MyNode.Ring, MyNode.Wallet.Balance, err = blockchain.DeserializeRegisterNodeResponse(response);
         if err != nil {
             log.Fatal(err);
         }
-
 
         fmt.Println(MyNode.Chain);
         fmt.Println(MyNode.Ring);
@@ -89,10 +88,3 @@ func main() {
         
     }
 }
-
-
-
-
-
-
-

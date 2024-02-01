@@ -2,17 +2,21 @@ package main
 
 import (
 	// "fmt"
-    "api/blockchain/blockchain"
-    "encoding/json"
-    "log"
+	"api/blockchain/blockchain"
+	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
+
 	// "math/big"
 	"crypto/rsa"
 )
 
 // Is sent by a node to the bootstrap node to register itself
 // The node receives back the blockchain, the node's id in the Ring, and its balance
+// =================================================================================
 func RegisterNode(c *gin.Context) {
     var request blockchain.RegisterNodeRequest;
 
@@ -33,6 +37,7 @@ func RegisterNode(c *gin.Context) {
     MyNode.AddNewInfo(NewNodeInfo);
     log.Println("Added new node to the Ring", MyNode.Ring);
 
+    // Serialize data for response
     jsonDataID := MyNode.Nonce;
     jsonBlockchain,err := json.Marshal(MyNode.Chain);
     if err != nil {
@@ -43,6 +48,9 @@ func RegisterNode(c *gin.Context) {
         log.Println(err);
     }
 
+    MyNode.Wallet.DeductMoney(1000);
+
+    // Send response
 	c.JSON(http.StatusOK, gin.H{
 		"id": jsonDataID,
 		"blockchain": string(jsonBlockchain),
@@ -50,4 +58,46 @@ func RegisterNode(c *gin.Context) {
         "balance":    1000,
 	})
 };
+
+// Send a transaction to another node
+// ===================================
+func SendTransaction(c *gin.Context) {
+    // var request blockchain.SendTransactionRequest;
+
+    // Send response
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Transaction sent",
+    })
+}
+
+// Set Stake for a block
+// ===================================
+func SetStake(c *gin.Context) {
+    // var request blockchain.SetStakeRequest;
+
+    // Send response
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Stake set",
+    })
+}
+
+// Get Balance from Wallet
+// ===================================
+func GetBalance(c *gin.Context) {
+    c.JSON(http.StatusOK, gin.H{
+        "balance": fmt.Sprint(MyNode.Wallet.Balance),
+    })
+}
+
+// Get Last Block from Blockchain
+// ===================================
+func GetLastBlock(c *gin.Context) {
+    jsonBlock,err := json.Marshal(MyNode.Chain.GetLastBlock());
+    if err != nil {
+        log.Println(err);
+    }
+    c.JSON(http.StatusOK, gin.H{
+        "last_block": string(jsonBlock),
+    })
+}
 

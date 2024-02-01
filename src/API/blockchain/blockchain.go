@@ -27,3 +27,8 @@ func (bc *Blockchain) AddBlock(block Block) {
     bc.Chain = append(bc.Chain, block)
 }
 
+// Get Last Block
+func (bc *Blockchain) GetLastBlock() Block {
+    return bc.Chain[len(bc.Chain)-1]
+}
+

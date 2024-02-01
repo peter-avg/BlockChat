@@ -81,11 +81,6 @@ func (n *Node) GenerateWallet() {
     n.Wallet = *NewWallet();
 }
 
-// Adding the Blockchain inside a Node
-func (n *Node) AddBlockchain() {
-    n.Chain = *NewBlockchain();
-}
-
 // Share the Ring with other Nodes
 // func (n *Node) ShareRing() {
 //     for _, node := range n.Ring {
