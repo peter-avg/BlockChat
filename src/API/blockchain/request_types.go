@@ -18,3 +18,13 @@ type RegisterNodeResponse struct {
     Balance int `json:"balance"`
 }
 
+type SetStakeRequest struct {
+    Stake int `json:"stake"`
+}
+
+type SendTransactionRequest struct {
+    Recipient string `json:"recipient_id"`
+    Message_or_Bitcoin int `json:"message_or_bitcoin"`
+    Data string `json:"data"`
+}
+

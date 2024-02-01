@@ -23,6 +23,7 @@ type Node struct {
     Chain Blockchain `json:"chain"`
     Ring []NodeInfo `json:"ring"`
     CurrentBlock Block `json:"CurrentBlock"`
+    Stake int `json:"stake"`
 }
 
 // NewNodeInfo creates and returns a new NodeInfo
@@ -80,21 +81,4 @@ func (n *Node) AddNewInfo(info *NodeInfo) {
 func (n *Node) GenerateWallet() {
     n.Wallet = *NewWallet();
 }
-
-// Share the Ring with other Nodes
-// func (n *Node) ShareRing() {
-//     for _, node := range n.Ring {
-//         if node.Id == 0 {
-//             continue;
-//         }
-        // node_address := "http://" + node.IP + ":" + node.PORT + "/update_ring";
-        // json_string, err := n.JSONify();
-        // if err != nil {
-        //     continue;
-        // }
-//     }
-// }
-
-
-
 

@@ -32,9 +32,13 @@ func main() {
     var nodes int;
     var bootstrap bool;
 
-    flag.StringVar(&PORT,"p", "6000", "Port to run on");
+    fmt.Println("hello i am a node");
+
+    flag.StringVar(&PORT,"p", "5000", "Port to run on");
     flag.IntVar(&nodes,"n", 1, "Number of nodes in chain");
     flag.BoolVar(&bootstrap,"b", false, "If node is bootstrap node");
+
+    fmt.Println("hello i am a node");
 
     flag.Parse();
 
@@ -61,7 +65,7 @@ func main() {
 
     } else {
 
-        entry_address := "http://" + BOOTSTRAP_IP + ":" + BOOTSTRAP_PORT + "/register_node";
+        entry_address := "http://" + BOOTSTRAP_IP + ":" + BOOTSTRAP_PORT + "/blockchat_api/register_node";
         MyNode.GenerateWallet();
 
         requestBody,_ := json.Marshal(map[string]interface{}{

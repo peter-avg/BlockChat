@@ -62,7 +62,13 @@ func RegisterNode(c *gin.Context) {
 // Send a transaction to another node
 // ===================================
 func SendTransaction(c *gin.Context) {
-    // var request blockchain.SendTransactionRequest;
+    var request blockchain.SendTransactionRequest;
+
+    if err := c.BindJSON(&request); err != nil {
+        log.Println("Error binding JSON");
+    }
+
+    log.Println("Sending transaction to", request.Recipient, "with data", request.Data);
 
     // Send response
     c.JSON(http.StatusOK, gin.H{
@@ -70,11 +76,19 @@ func SendTransaction(c *gin.Context) {
     })
 }
 
-// Set Stake for a block
-// ===================================
+// Set Stake for Proof of Stake
+// ============================
 func SetStake(c *gin.Context) {
-    // var request blockchain.SetStakeRequest;
+    var request blockchain.SetStakeRequest;
 
+    if err := c.BindJSON(&request); err != nil {
+        log.Println("Error binding JSON");
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    MyNode.Stake = request.Stake;
+    
     // Send response
     c.JSON(http.StatusOK, gin.H{
         "message": "Stake set",
@@ -82,7 +96,7 @@ func SetStake(c *gin.Context) {
 }
 
 // Get Balance from Wallet
-// ===================================
+// =======================
 func GetBalance(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{
         "balance": fmt.Sprint(MyNode.Wallet.Balance),
@@ -90,7 +104,7 @@ func GetBalance(c *gin.Context) {
 }
 
 // Get Last Block from Blockchain
-// ===================================
+// ==============================
 func GetLastBlock(c *gin.Context) {
     jsonBlock,err := json.Marshal(MyNode.Chain.GetLastBlock());
     if err != nil {
