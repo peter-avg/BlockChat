@@ -3,8 +3,37 @@ package blockchain
 import (
     "os"
     "net"
+    "net/http"
+    "io"
     "encoding/json"
 )
+
+// Receive a RegisterNodeResponse and convert to Ring and Chain
+func DeserializeRegisterNodeResponse(response *http.Response) (Blockchain, []NodeInfo, error) {
+    body, err := io.ReadAll(response.Body)
+    if err != nil {
+        return Blockchain{}, []NodeInfo{}, err
+    }
+
+    var response_data RegisterNodeResponse;
+    if err := json.Unmarshal(body, &response_data); err != nil {
+        return Blockchain{}, []NodeInfo{}, err
+
+    }
+
+    var blockchain Blockchain;
+    if err := json.Unmarshal([]byte(response_data.Blockchain), &blockchain); err != nil {
+        return Blockchain{}, []NodeInfo{}, err
+    }
+
+    var ring []NodeInfo;
+    if err := json.Unmarshal([]byte(response_data.Ring), &ring); err != nil {
+        return Blockchain{}, []NodeInfo{}, err
+    }
+
+    return blockchain,ring,nil
+
+}
 
 // JSON to Transaction
 func DeserializeTransaction(jsonData string) (Transaction, error) {

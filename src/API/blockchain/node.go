@@ -18,6 +18,7 @@ type NodeInfo struct {
 // Node struct contains Blockchain info
 type Node struct {
     Id int `json:"id"`
+    Nonce int `json:"nonce"`
     Wallet Wallet `json:"wallet"`
     Chain Blockchain `json:"chain"`
     Ring []NodeInfo `json:"ring"`
@@ -40,6 +41,7 @@ func NewNodeInfo(id int, ip string, port string,
 func NewNode(id int, chain Blockchain, ring []NodeInfo) *Node {
     return &Node {
         Id: id,
+        Nonce: 0,
         Chain: chain,
         Ring: ring,
     }
@@ -71,6 +73,7 @@ func (n *Node) CreateNewBlock() {
 // Adding Info for a new Node in Ring
 func (n *Node) AddNewInfo(info *NodeInfo) {
     n.Ring = append(n.Ring, *info);
+    n.Nonce++;
 }
 
 // Generating Wallet for Node

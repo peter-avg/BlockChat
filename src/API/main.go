@@ -4,7 +4,6 @@ import (
     "bytes"
     "encoding/json"
 	"api/blockchain/blockchain"
-    "io"
 	"fmt"
     "log"
 	// "fmt"
@@ -13,7 +12,7 @@ import (
 	"net/http"
 )
 
-var MyNode blockchain.Node = blockchain.MyNode;
+var MyNode blockchain.Node;
 var BOOTSTRAP_IP string = blockchain.BOOTSTRAP_IP;
 var BOOTSTRAP_PORT string = blockchain.BOOTSTRAP_PORT;
 var CAPACITY int = blockchain.CAPACITY;
@@ -22,7 +21,7 @@ func main() {
 
     router := gin.Default();
 
-    router.POST("/register_node", blockchain.RegisterNode);
+    router.POST("/register_node", RegisterNode);
 
     IP,err := blockchain.GetIP();
 
@@ -34,7 +33,7 @@ func main() {
     var nodes int;
     var bootstrap bool;
 
-    flag.StringVar(&PORT,"p", "5000", "Port to run on");
+    flag.StringVar(&PORT,"p", "6000", "Port to run on");
     flag.IntVar(&nodes,"n", 1, "Number of nodes in chain");
     flag.BoolVar(&bootstrap,"b", false, "If node is bootstrap node");
 
@@ -45,9 +44,9 @@ func main() {
         // Setup the Bootstrap node
         MyNode.Id = 0;
         MyNode.GenerateWallet();
-        log.Println("Bootstrap Node public key: ",MyNode.Wallet.PublicKey);
         MyNodeInfo := blockchain.NewNodeInfo(MyNode.Id, BOOTSTRAP_IP, BOOTSTRAP_PORT, MyNode.Wallet.PublicKey, nodes*1000);
         MyNode.AddNewInfo(MyNodeInfo);
+        log.Println(MyNode.Ring)
 
         // Setup the Genesis Block
         GenesisBlock := blockchain.NewBlock(0, "1");
@@ -73,23 +72,22 @@ func main() {
         })
 
         response, err := http.Post(entry_address, "application/json", bytes.NewBuffer(requestBody));
-
         if err != nil {
-            log.Fatal("Could not connect to Bootstrap Node");
+            log.Fatal(err);
         }
 
-        body, err := io.ReadAll(response.Body)
+        MyNode.Chain, MyNode.Ring, err = blockchain.DeserializeRegisterNodeResponse(response);
         if err != nil {
-           log.Fatalln(err)
+            log.Fatal(err);
         }
 
-        sb := string(body)
-        log.Printf(sb)
 
-        router.Run(IP + ":" + PORT);
+        fmt.Println(MyNode.Chain);
+        fmt.Println(MyNode.Ring);
+
+        router.Run(BOOTSTRAP_IP + ":" + PORT);
         
     }
-
 }
 
 

@@ -11,3 +11,10 @@ type RegisterNodeRequest struct {
 	Exponent int    `json:"exponent"`
 }
 
+type RegisterNodeResponse struct { 
+    Id int `json:"id"`
+    Blockchain string `json:"blockchain"`
+    Ring string `json:"ring"`
+    Balance int `json:"balance"`
+}
+
