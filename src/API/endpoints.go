@@ -15,9 +15,8 @@ import (
 	"crypto/rsa"
 )
 
-// Is sent by a node to the bootstrap node to register itself
-// The node receives back the blockchain, the node's id in the Ring, and its balance
-// =================================================================================
+// Is sent by a node to the bootstrap node to register itself, and its info gets broadcasted to all nodes
+// ======================================================================================================
 func RegisterNode(c *gin.Context) {
     var request blockchain.RegisterNodeRequest;
 
@@ -159,13 +158,24 @@ func SetStake(c *gin.Context) {
         return
     }
 
-    // TODO: validate stake by all nodes
-    // TODO: Once validated, send it all nodes
-    // TODO: Change self.Stake
-    
-    // Send response
-    c.JSON(http.StatusOK, gin.H{
-        "message": "Stake set",
+    node_info := blockchain.NodeInfo{
+        Id: MyNode.Id,
+        Stake: request.Stake,
+    }
+
+    if MyNode.BroadcastStake(node_info) {
+        log.Println("Stake broadcasted");
+        log.Println("Setting stake", request.Stake);
+        MyNode.Ring[MyNode.Id].Stake = request.Stake;
+        c.JSON(http.StatusOK, gin.H{
+            "message": "Stake set",
+        })
+        return
+    }
+
+    log.Println("Stake not set");
+    c.JSON(http.StatusBadRequest, gin.H{
+        "error": "Stake not set",
     })
 }
 
@@ -266,5 +276,48 @@ func ReceiveTransaction(c *gin.Context) {
     })
 
 }
+
+// Validate Stake
+// ==============
+func ValidateStake(c *gin.Context) {
+    var request blockchain.NodeInfo;
+
+    if err := c.BindJSON(&request); err != nil {
+        log.Println("Error binding JSON");
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    if request.Stake > MyNode.Ring[request.Id].Balance {
+        log.Println("Insufficient funds to set stake");
+        c.JSON(http.StatusBadRequest, gin.H{
+            "error": "Insufficient funds to set stake",
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Stake validated",
+    })
+}
+
+// Receive Stake
+// =============
+func ReceiveStake(c *gin.Context) {
+    var request blockchain.NodeInfo;
+
+    if err := c.BindJSON(&request); err != nil {
+        log.Println("Error binding JSON");
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    MyNode.Ring[request.Id].Stake = request.Stake;
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Stake received",
+    })
+}
+
 
 

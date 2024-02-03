@@ -6,21 +6,23 @@ import (
     // "crypto/rand"
     "log"
     "bytes"
-	"crypto/rsa"
+    "crypto/rsa"
     "encoding/json"
 )
 
 // NodeInfo struct contains communication info about other nodes
+// ============================================================
 type NodeInfo struct {
     Id int `json:"id"`
     IP string `json:"IP"`
     PORT string `json:"PORT"`
-	PublicKey *rsa.PublicKey `json:"PublicKey"`
+    PublicKey *rsa.PublicKey `json:"PublicKey"`
     Balance int `json:"Balance"`
     Stake int `json:"stake"`
 }
 
 // Node struct contains Blockchain info
+// ===================================
 type Node struct {
     Id int `json:"id"`
     Nonce int `json:"nonce"`
@@ -33,7 +35,7 @@ type Node struct {
 // NewNodeInfo creates and returns a new NodeInfo
 // =============================================
 func NewNodeInfo(id int, ip string, port string,
-                 PublicKey *rsa.PublicKey, balance int) *NodeInfo {
+PublicKey *rsa.PublicKey, balance int) *NodeInfo {
     return &NodeInfo {
         Id: id,
         IP: ip, 
@@ -133,22 +135,23 @@ func (n *Node) SendNewNode(info *NodeInfo, IP string, PORT string, ID int) bool 
 
 
 // Broadcast transaction to all nodes
+// =================================
 func (n *Node) BroadcastTransaction(transaction *Transaction) bool {
     for _, node := range n.Ring {
 
         if node.Id != n.Id {
-             if n.ValidateTransaction(transaction, node.IP, node.PORT, node.Id) == false {
-                 return false
-             }
+            if n.ValidateTransaction(transaction, node.IP, node.PORT, node.Id) == false {
+                return false
+            }
         }
     }
 
     for _, node := range n.Ring {
 
         if node.Id != n.Id {
-             if n.SendTransaction(transaction, node.IP, node.PORT, node.Id) == false {
-                 return false
-             }
+            if n.SendTransaction(transaction, node.IP, node.PORT, node.Id) == false {
+                return false
+            }
         }
     }
 
@@ -156,6 +159,7 @@ func (n *Node) BroadcastTransaction(transaction *Transaction) bool {
 }
 
 // Validate a transaction
+// ======================
 func (n *Node) ValidateTransaction(transaction *Transaction, IP string, PORT string, ID int) bool {
 
     send_address := "http://" + IP + ":" + PORT + "/blockchat_api/validate_transaction";
@@ -206,4 +210,83 @@ func (n *Node) SendTransaction(transaction *Transaction, IP string, PORT string,
     log.Println("Transaction failed to send to Node ", ID);
     return false
 }
+
+// Broadcast stake to all nodes
+// ============================
+func (n *Node) BroadcastStake(info NodeInfo) bool {
+    for _, node := range n.Ring {
+
+        if node.Id != n.Id {
+            if n.ValidateStake(info, node.IP, node.PORT, node.Id) == false {
+                return false
+            }
+        }
+    }
+
+    for _, node := range n.Ring {
+
+        if node.Id != n.Id {
+            if n.SendStake(info, node.IP, node.PORT, node.Id) == false {
+                return false
+            }
+        }
+    }
+
+    return true
+}
+
+// Validate a stake
+// ================
+func (n *Node) ValidateStake(info NodeInfo, IP string, PORT string, ID int) bool {
+
+    send_address := "http://" + IP + ":" + PORT + "/blockchat_api/validate_stake";
+
+    request_body, err := json.Marshal(info);
+    if err != nil {
+        log.Println(err);
+        return false
+    }
+
+    response, err := http.Post(send_address, "application/json", bytes.NewBuffer(request_body));
+    if err != nil {
+        log.Println(err);
+        return false;
+    }
+
+    if response.StatusCode == 200 {
+        log.Println("Stake validated by Node ", ID);
+        return true;
+    }
+
+    return false;
+}
+
+// Send a stake to a node
+// ======================
+func (n *Node) SendStake(info NodeInfo, IP string, PORT string, ID int) bool {
+
+    send_address := "http://" + IP + ":" + PORT + "/blockchat_api/receive_stake";
+
+    request_body, err := json.Marshal(info);
+    if err != nil {
+        log.Println(err);
+        return false
+    }
+
+    response, err := http.Post(send_address, "application/json", bytes.NewBuffer(request_body));
+    if err != nil { 
+        log.Println(err);
+        return false
+    }
+
+    if response.StatusCode == 200 {
+        log.Println("Stake sent to Node ", ID);
+        return true
+    }
+
+    log.Println("Stake failed to send to Node ", ID);
+    return false
+}
+
+
 
