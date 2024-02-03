@@ -2,6 +2,9 @@ package blockchain
 
 import (
     // "fmt"
+    "net/http"
+    "log"
+    "bytes"
 	"crypto/rsa"
     "encoding/json"
 )
@@ -80,5 +83,41 @@ func (n *Node) AddNewInfo(info *NodeInfo) {
 // Generating Wallet for Node
 func (n *Node) GenerateWallet() {
     n.Wallet = *NewWallet();
+}
+
+// Broadcast transaction to all nodes
+func (n *Node) BroadcastTransaction(transaction *Transaction) {
+    for _, node := range n.Ring {
+
+        if node.Id != n.Id {
+            SendTransaction(transaction, node.IP, node.PORT);
+        }
+    }
+}
+
+// Send a transaction to a node
+// =============================
+func SendTransaction(transaction *Transaction, IP string, PORT string) { 
+
+    send_address := "http://" + IP + ":" + PORT + "/blockchat_api/receive_transaction";
+
+    log.Println("Sending transaction to: ", send_address);
+
+    request_body, err := json.Marshal(transaction);
+    if err != nil {
+        log.Println(err);
+        return
+    }
+
+    log.Println(string(request_body));
+
+    response, err := http.Post(send_address, "application/json", bytes.NewBuffer(request_body));
+    if err != nil { 
+        log.Println(err);
+        return
+    }
+
+    log.Println(response);
+    return
 }
 

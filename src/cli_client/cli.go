@@ -75,7 +75,7 @@ func main() {
             if c.Bool("t") {
 
                 recipient_id := c.Args().Get(0)
-                apiurl := "http://127.0.0.1:9876/blockchat_api/send_transaction"
+                apiurl := "http://127.0.0.1:5000/blockchat_api/send_transaction"
                 data := url.Values{}
 
                 if recipient_id == "" {

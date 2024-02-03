@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"strconv"
 	"fmt"
 )
 
@@ -35,28 +34,27 @@ func NewWallet() *Wallet {
 }
 
 // Add a transaction to the wallet
-func (w *Wallet) AddTransaction(newTransaction Transaction) int {
+func (w *Wallet) AddTransaction() int {
 	w.Nonce++
-    fmt.Println("Nonce updated to " + strconv.Itoa(w.Nonce));
 	return w.Nonce
 }
 
 // Sign a transaction (sender)
-func (w *Wallet) SignTransaction(transaction *Transaction) []byte {
+func (w *Wallet) SignTransaction(transaction *Transaction) ([]byte,error) {
 	hashed := sha256.Sum256([]byte(transaction.Data))
 	signature, err := rsa.SignPSS(rand.Reader, w.PrivateKey, crypto.SHA256, hashed[:], nil)
 	if err != nil {
         fmt.Println("Could not sign signature");
-		return nil
+		return nil,err
 	}
-	return signature
+	return signature,nil
 }
 
 // Verify a transaction (receiver)
-func (w *Wallet) VerifyTransaction(transaction *Transaction) bool {
+func (w* Wallet) VerifyTransaction(transaction *Transaction) (bool,error) {
 	hashed := sha256.Sum256([]byte(transaction.Data))
-	err := rsa.VerifyPSS(w.PublicKey, crypto.SHA256, hashed[:], transaction.Signature, nil)
-	return err == nil
+	err := rsa.VerifyPSS(transaction.SenderAddress, crypto.SHA256, hashed[:], transaction.Signature, nil)
+    return true,err
 }
 
 // Deduct money from the wallet

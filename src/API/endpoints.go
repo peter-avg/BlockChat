@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -68,7 +69,31 @@ func SendTransaction(c *gin.Context) {
         log.Println("Error binding JSON");
     }
 
-    log.Println("Sending transaction to", request.Recipient, "with data", request.Data);
+    receiver,err := strconv.Atoi(string(request.Recipient[len(request.Recipient)-1]));
+    if err != nil {
+        log.Println(err);
+    }
+
+    type_of_data,err := strconv.ParseBool(fmt.Sprint(request.Message_or_Bitcoin));
+    if err != nil { 
+        log.Println(err);
+    }
+
+    new_transaction := blockchain.NewTransaction(
+        receiver,
+        type_of_data,
+        request.Data,
+        MyNode.Wallet.AddTransaction(),
+    );
+    new_transaction.Signature, err = MyNode.Wallet.SignTransaction(new_transaction);
+    new_transaction.SenderAddress = MyNode.Wallet.PublicKey;
+    if err != nil {
+        log.Println("Error signing transaction", err);
+    }
+
+    log.Println("Sending transaction", new_transaction);
+
+    MyNode.BroadcastTransaction(new_transaction);
 
     // Send response
     c.JSON(http.StatusOK, gin.H{
@@ -114,4 +139,54 @@ func GetLastBlock(c *gin.Context) {
         "last_block": string(jsonBlock),
     })
 }
+
+// Receive Transaction
+// ===================
+func ReceiveTransaction(c *gin.Context) {
+    var request blockchain.Transaction;
+
+    if err := c.BindJSON(&request); err != nil {
+        log.Println("Error binding JSON");
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    type_of_data,err := strconv.ParseBool(fmt.Sprint(request.TypeOfTransaction));
+
+    if err != nil { 
+        log.Println(err);
+    }
+
+    received_transaction := blockchain.NewTransaction(
+        MyNode.Id,
+        type_of_data,
+        request.Data,
+        MyNode.Wallet.Nonce + 1,
+    );
+    received_transaction.Signature = request.Signature;
+    received_transaction.Data = request.Data;
+    received_transaction.SenderAddress = request.SenderAddress;
+    log.Println("Received transaction", received_transaction);
+
+    verification,err := MyNode.Wallet.VerifyTransaction(received_transaction);
+    if err != nil {
+        log.Println("Error verifying transaction", err);
+        return
+    }
+
+    MyNode.CurrentBlock.AddTransaction(received_transaction,CAPACITY);
+
+    if verification { 
+        log.Println("Transaction verified");
+    }
+
+    log.Println("Received transaction", received_transaction);
+
+    // Send response
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Transaction received",
+    })
+
+}
+
 

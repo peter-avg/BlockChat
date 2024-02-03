@@ -22,11 +22,10 @@ func main() {
 
     router := InitRouter();
 
-    IP,err := blockchain.GetIP();
-
-    if err != nil {
-        log.Fatal("Could not get IP");
-    }
+    // IP,err := blockchain.GetIP();
+    // if err != nil {
+    //     log.Fatal("Could not get IP");
+    // }
 
     var PORT string;
     var nodes int;
@@ -54,7 +53,7 @@ func main() {
 
         // Setup the Genesis Block
         GenesisBlock := blockchain.NewBlock(0, "1");
-        FirstTransaction := blockchain.NewTransaction(0,0, true, fmt.Sprint(1000*nodes), 1);
+        FirstTransaction := blockchain.NewTransaction(0, true, fmt.Sprint(1000*nodes), 1);
         GenesisBlock.AddTransaction(FirstTransaction, CAPACITY);
         GenesisBlock.Hashify();
 
@@ -69,7 +68,7 @@ func main() {
         MyNode.GenerateWallet();
 
         requestBody,_ := json.Marshal(map[string]interface{}{
-            "ip": IP,
+            "ip": BOOTSTRAP_IP,
             "port": PORT,
             "modulus": MyNode.Wallet.PublicKey.N,
             "exponent": MyNode.Wallet.PublicKey.E,

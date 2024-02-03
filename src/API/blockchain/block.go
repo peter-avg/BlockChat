@@ -53,6 +53,7 @@ func (b *Block) Hashify() {
 func (b *Block) AddTransaction(transaction *Transaction, capacity int) {
     if len(b.Transactions) < capacity {
         b.Transactions = append(b.Transactions, *transaction)
+        return
     }
 }
 

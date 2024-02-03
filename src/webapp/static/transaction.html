@@ -100,12 +100,17 @@
                 var recipient = document.getElementById('recipient').value;
                 var transactionType = transactionTypeSelector.value;
                 var data = transactionType === 'bitcoin' ? bitcoinInput.value : messageInput.value;
+                const requestBody = {
+                    recipient_id: recipient,
+                    message_or_bitcoin: transactionType === 'bitcoin' ? 1 : 0,
+                    data: data
+                };
                 fetch('http://127.0.0.1:9876/blockchat_api/send_transaction', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: `recipient_id=${recipient}&message_or_bitcoin=${transactionType === 'bitcoin' ? 1 : 0}&data=${data}`
+                    body: JSON.stringify(requestBody)
                 })
                 .then(response => response.json())
                 .then(data => {

@@ -3,6 +3,7 @@ package blockchain
 import (
 	// "crypto/rsa"
 	// "crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
 	// "crypto/x509"
 	"encoding/hex"
@@ -13,20 +14,19 @@ import (
 
 // Transaction represents a blockchain transaction
 type Transaction struct {
-	SenderAddress      int    `json:"sender_address"`
+	SenderAddress      *rsa.PublicKey    `json:"sender_address"`
 	ReceiverAddress    int    `json:"receiver_address"`
 	TypeOfTransaction  bool   `json:"type_of_transaction"` // 0 for message, 1 for bcc
 	Data               string `json:"data"`
 	Nonce              int    `json:"nonce"`
 	TransactionID      string  `json:"transaction_id"`
-	Signature          []byte `json:"signature,omitempty"`
+	Signature          []byte `json:"signature"`
 }
 
 // NewTransaction creates a new Transaction
-func NewTransaction(senderAddress int, receiverAddress int, typeOfTransaction bool, data string, nonce int) *Transaction {
+func NewTransaction(receiverAddress int, typeOfTransaction bool, data string, nonce int) *Transaction {
     
 	return &Transaction{
-		SenderAddress:      senderAddress,
 		ReceiverAddress:    receiverAddress,
 		TypeOfTransaction:  typeOfTransaction,
 		Data:               data,

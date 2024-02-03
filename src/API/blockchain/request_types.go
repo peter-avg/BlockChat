@@ -2,6 +2,7 @@ package blockchain
 
 import (
     "math/big"
+    "crypto/rsa"
 )
 
 type RegisterNodeRequest struct {
@@ -28,3 +29,9 @@ type SendTransactionRequest struct {
     Data string `json:"data"`
 }
 
+type ReceiveTransactionRequest struct { 
+    Sender *rsa.PublicKey `json:"sender"`
+    Message_or_Bitcoin int `json:"message_or_bitcoin"`
+    Data string `json:"data"`
+    Signature string `json:"signature"`
+}
