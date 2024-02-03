@@ -30,3 +30,8 @@ To set up BlockChat on your local machine, follow these steps:
 ## Demo
 
 Check out our [YouTube demo](https://www.youtube.com) to see BlockChat in action.
+
+## Collaborators
+
+<!-- readme: collaborators -start -->
+<!-- readme: collaborators -end -->
