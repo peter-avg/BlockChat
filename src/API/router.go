@@ -16,6 +16,8 @@ func InitRouter() (*gin.Engine) {
 
     // Backend Endpoints of API
     // ========================
+    router.POST("/blockchat_api/receive_new_node", ReceiveNewNode);
+    router.POST("/blockchat_api/validate_transaction", ValidateTransaction);
     router.POST("/blockchat_api/receive_transaction", ReceiveTransaction);
 
     // Client Endpoints of API

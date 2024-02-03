@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	// "crypto/rsa"
+    "strconv"
 	// "crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -51,5 +52,25 @@ func (t *Transaction) Hashify() {
 	jsonString := t.JSONify()
 	hash := sha256.Sum256([]byte(jsonString))
 	t.TransactionID = hex.EncodeToString(hash[:]);
+}
+
+// Calculate transaction fee for messages of bitcoin
+func (t *Transaction) CalculateFee() int {
+
+    // if it's bitcoin, the fee is the data
+    if t.TypeOfTransaction {
+        res, err := strconv.Atoi(t.Data);
+        if err != nil {
+            println("Error converting data to int");
+            return 0;
+        }
+
+        return res;
+    }
+
+
+    // if it's a message, for every character in the string, it costs one bitcoin
+    return len(t.Data);
+
 }
 

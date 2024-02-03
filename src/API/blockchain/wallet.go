@@ -58,8 +58,13 @@ func (w* Wallet) VerifyTransaction(Data string, Signature []byte, SenderAddress 
 }
 
 // Deduct money from the wallet
-func (w *Wallet) DeductMoney(Amount int) {
-    w.Balance -= Amount;
+func (w *Wallet) DeductMoney(Amount int) bool {
+    if w.Balance - Amount >= 0 {
+        w.Balance -= Amount;
+        return true
+    }
+
+    return false
 }
 
 // Add money to the wallet

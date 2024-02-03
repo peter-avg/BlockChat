@@ -34,7 +34,7 @@ func main() {
     fmt.Println("hello i am a node");
 
     flag.StringVar(&PORT,"p", "5000", "Port to run on");
-    flag.IntVar(&nodes,"n", 1, "Number of nodes in chain");
+    flag.IntVar(&nodes,"n", 3, "Number of nodes in chain");
     flag.BoolVar(&bootstrap,"b", false, "If node is bootstrap node");
 
     fmt.Println("hello i am a node");

@@ -3,7 +3,7 @@ package blockchain
 import (
     // "fmt"
     "net/http"
-    "crypto/rand"
+    // "crypto/rand"
     "log"
     "bytes"
 	"crypto/rsa"
@@ -17,6 +17,7 @@ type NodeInfo struct {
     PORT string `json:"PORT"`
 	PublicKey *rsa.PublicKey `json:"PublicKey"`
     Balance int `json:"Balance"`
+    Stake int `json:"stake"`
 }
 
 // Node struct contains Blockchain info
@@ -27,10 +28,10 @@ type Node struct {
     Chain Blockchain `json:"chain"`
     Ring []NodeInfo `json:"ring"`
     CurrentBlock Block `json:"CurrentBlock"`
-    Stake int `json:"stake"`
 }
 
 // NewNodeInfo creates and returns a new NodeInfo
+// =============================================
 func NewNodeInfo(id int, ip string, port string,
                  PublicKey *rsa.PublicKey, balance int) *NodeInfo {
     return &NodeInfo {
@@ -43,6 +44,7 @@ func NewNodeInfo(id int, ip string, port string,
 }
 
 // NewNode creates and returns a new Node
+// =====================================
 func NewNode(id int, chain Blockchain, ring []NodeInfo) *Node {
     return &Node {
         Id: id,
@@ -53,18 +55,21 @@ func NewNode(id int, chain Blockchain, ring []NodeInfo) *Node {
 }
 
 // JSONify serializes NodeInfo into a JSON string
+// =============================================
 func (ni *NodeInfo) JSONify() (string, error) {
     jsonBytes, err := json.Marshal(ni)
     return string(jsonBytes), err
 }
 
 // JSONify serializes Node into a JSON string
+// =========================================
 func (n *Node) JSONify() (string, error) {
     jsonBytes, err := json.Marshal(n)
     return string(jsonBytes), err
 }
 
 // Creating a new block
+// ====================
 func (n *Node) CreateNewBlock() {
     if len(n.Chain.Chain) == 0 {
         new_block := NewBlock(0,"1");
@@ -76,57 +81,129 @@ func (n *Node) CreateNewBlock() {
 }
 
 // Adding Info for a new Node in Ring
+// ==================================
 func (n *Node) AddNewInfo(info *NodeInfo) {
     n.Ring = append(n.Ring, *info);
     n.Nonce++;
 }
 
 // Generating Wallet for Node
+// ==========================
 func (n *Node) GenerateWallet() {
     n.Wallet = *NewWallet();
 }
 
-// Broadcast transaction to all nodes
-func (n *Node) BroadcastTransaction(transaction *Transaction) {
+// Broadcast new node to all nodes
+// ================================
+func (n *Node) BroadcastNewNode(info *NodeInfo) {
     for _, node := range n.Ring {
-
-        if node.Id != n.Id {
-            SendTransaction(transaction, node.IP, node.PORT, node.Id);
+        if node.Id != n.Id && node.Id != info.Id {
+            if n.SendNewNode(info, node.IP, node.PORT, node.Id) == false {
+                log.Println("Error sending new node to Node ", node.Id);
+            }
         }
     }
 }
 
-// Send a transaction to a node
-// =============================
-func SendTransaction(transaction *Transaction, IP string, PORT string, ID int) { 
+// Send a new node to a node
+// ==========================
+func (n *Node) SendNewNode(info *NodeInfo, IP string, PORT string, ID int) bool {
+    send_address := "http://" + IP + ":" + PORT + "/blockchat_api/receive_new_node";
 
-    send_address := "http://" + IP + ":" + PORT + "/blockchat_api/receive_transaction";
-
-    if ID != transaction.ReceiverAddress {
-        bits := 2048
-        privateKey, err := rsa.GenerateKey(rand.Reader, bits)
-        if err != nil {
-            panic("failed to generate private key")
-        }
-        pK := &privateKey.PublicKey
-        transaction.SenderAddress = pK;
-    }
-
-    request_body, err := json.Marshal(transaction);
+    request_body, err := json.Marshal(info);
     if err != nil {
         log.Println(err);
-        return
+        return false
     }
 
     response, err := http.Post(send_address, "application/json", bytes.NewBuffer(request_body));
     if err != nil { 
         log.Println(err);
-        return
+        return false
     }
 
-    log.Println(response);
-    // defer response.Body.Close();
+    if response.StatusCode == 200 {
+        log.Println("New node sent to Node ", ID);
+        return true
+    }
 
-    return
+    log.Println("New node failed to send to Node ", ID);
+    return false
+}
+
+
+// Broadcast transaction to all nodes
+func (n *Node) BroadcastTransaction(transaction *Transaction) bool {
+    for _, node := range n.Ring {
+
+        if node.Id != n.Id {
+             if n.ValidateTransaction(transaction, node.IP, node.PORT, node.Id) == false {
+                 return false
+             }
+        }
+    }
+
+    for _, node := range n.Ring {
+
+        if node.Id != n.Id {
+             if n.SendTransaction(transaction, node.IP, node.PORT, node.Id) == false {
+                 return false
+             }
+        }
+    }
+
+    return true
+}
+
+// Validate a transaction
+func (n *Node) ValidateTransaction(transaction *Transaction, IP string, PORT string, ID int) bool {
+
+    send_address := "http://" + IP + ":" + PORT + "/blockchat_api/validate_transaction";
+
+    request_body, err := json.Marshal(transaction);
+    if err != nil {
+        log.Println(err);
+        return false
+    }
+
+    response, err := http.Post(send_address, "application/json", bytes.NewBuffer(request_body));
+    if err != nil {
+        log.Println(err);
+        return false;
+    }
+
+    if response.StatusCode == 200 {
+        log.Println("Transaction validated by Node ", ID);
+        return true;
+    }
+
+    return false;
+}
+
+// Send a transaction to a node
+// =============================
+func (n *Node) SendTransaction(transaction *Transaction, IP string, PORT string, ID int) bool { 
+
+    send_address := "http://" + IP + ":" + PORT + "/blockchat_api/receive_transaction";
+
+    request_body, err := json.Marshal(transaction);
+    if err != nil {
+        log.Println(err);
+        return false
+    }
+
+    response, err := http.Post(send_address, "application/json", bytes.NewBuffer(request_body));
+    if err != nil { 
+        log.Println(err);
+        return false
+    }
+
+    if response.StatusCode == 200 {
+        log.Println("Transaction sent to Node ", ID);
+        return true
+    }
+
+    log.Println("Transaction failed to send to Node ", ID);
+    return false
 }
 

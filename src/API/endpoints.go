@@ -33,6 +33,12 @@ func RegisterNode(c *gin.Context) {
 		E: request.Exponent,
 	}
 
+    if MyNode.Wallet.DeductMoney(1000) == false {
+        log.Println("Error deducting money");
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Could not deduct money"})
+        return
+    }
+
     // Add the new node to the Ring
     NewNodeInfo := blockchain.NewNodeInfo(MyNode.Nonce, request.IP, request.Port, &publicKey, 1000);
     MyNode.AddNewInfo(NewNodeInfo);
@@ -49,8 +55,6 @@ func RegisterNode(c *gin.Context) {
         log.Println(err);
     }
 
-    MyNode.Wallet.DeductMoney(1000);
-
     // Send response
 	c.JSON(http.StatusOK, gin.H{
 		"id": jsonDataID,
@@ -58,7 +62,28 @@ func RegisterNode(c *gin.Context) {
         "ring" : string(jsonRing),
         "balance":    1000,
 	})
+
+    MyNode.BroadcastNewNode(NewNodeInfo);
 };
+
+// Receive new node
+// ================
+func ReceiveNewNode(c *gin.Context) {
+    var request blockchain.NodeInfo;
+
+    if err := c.BindJSON(&request); err != nil {
+        log.Println("Error binding JSON");
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    MyNode.AddNewInfo(&request);
+    log.Println("Added new node to the Ring", MyNode.Ring);
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Node added",
+    })
+}
 
 // Send a transaction to another node
 // ===================================
@@ -93,11 +118,27 @@ func SendTransaction(c *gin.Context) {
 
     log.Println("Sending transaction", new_transaction);
 
-    MyNode.BroadcastTransaction(new_transaction);
+    transaction_fee := new_transaction.CalculateFee()
+    if transaction_fee > MyNode.Wallet.Balance {
+        log.Println("Insufficient funds to send transaction");
+        c.JSON(http.StatusBadRequest, gin.H{
+            "error": "Insufficient funds to send transaction",
+        })
+        return
+    }
 
-    // Send response
-    c.JSON(http.StatusOK, gin.H{
-        "message": "Transaction sent",
+    if MyNode.BroadcastTransaction(new_transaction) {
+        log.Println("Transaction broadcasted");
+        MyNode.CurrentBlock.AddTransaction(*new_transaction,CAPACITY);
+        c.JSON(http.StatusOK, gin.H{
+            "message": "Transaction sent",
+        })
+
+        return
+    }
+
+    c.JSON(http.StatusBadRequest, gin.H{
+        "error": "Transaction not sent",
     })
 }
 
@@ -112,7 +153,15 @@ func SetStake(c *gin.Context) {
         return
     }
 
-    MyNode.Stake = request.Stake;
+    if MyNode.Wallet.DeductMoney(request.Stake) == false {
+        log.Println("Could not set stake, insufficient funds");
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Could not set stake, insufficient funds"})
+        return
+    }
+
+    // TODO: validate stake by all nodes
+    // TODO: Once validated, send it all nodes
+    // TODO: Change self.Stake
     
     // Send response
     c.JSON(http.StatusOK, gin.H{
@@ -140,6 +189,48 @@ func GetLastBlock(c *gin.Context) {
     })
 }
 
+// Verify Transaction
+// ==================
+func ValidateTransaction(c *gin.Context) {
+    var request blockchain.Transaction;
+
+    if err := c.BindJSON(&request); err != nil {
+        log.Println("Error binding JSON");
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    sig_ok,err := MyNode.Wallet.VerifyTransaction(request.Data, request.Signature, request.SenderAddress);
+
+    if err != nil {
+        log.Println("Error validated signature", err);
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Could not verify transaction"})
+        return
+    }
+
+    if sig_ok { log.Println("Signature was validated");}
+
+    for _,node := range MyNode.Ring {
+        if node.PublicKey == request.SenderAddress {
+            sender_balance := node.Balance - node.Stake;
+            if sender_balance < request.CalculateFee() {
+                log.Println("Insufficient funds to send transaction");
+                c.JSON(http.StatusBadRequest, gin.H{
+                    "error": "Insufficient funds to send transaction",
+                })
+                return
+            }
+
+            node.Balance -= request.CalculateFee();
+    }
+
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Transaction validated",
+    })
+}
+}
+
 // Receive Transaction
 // ===================
 func ReceiveTransaction(c *gin.Context) {
@@ -151,36 +242,10 @@ func ReceiveTransaction(c *gin.Context) {
         return
     }
 
-    log.Println("Received transaction", request);
-
     type_of_data,err := strconv.ParseBool(fmt.Sprint(request.TypeOfTransaction));
 
     if err != nil { 
         log.Println(err);
-    }
-
-    verification,err := MyNode.Wallet.VerifyTransaction(request.Data, request.Signature, request.SenderAddress);
-
-    if err != nil {
-        log.Println("Error verifying transaction", err);
-        received_transaction := blockchain.Transaction{
-            SenderAddress: request.SenderAddress,
-            ReceiverAddress: MyNode.Id,
-            TypeOfTransaction: type_of_data,
-            Data: "Not your data",
-            Nonce: MyNode.Wallet.AddTransaction(),
-            TransactionID: "",
-            Signature: request.Signature,
-        }
-
-        MyNode.CurrentBlock.AddTransaction(received_transaction,CAPACITY);
-
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
-
-    if verification {
-        log.Println("Transaction verified");
     }
 
     received_transaction := blockchain.Transaction{
