@@ -14,6 +14,7 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
+            transition: opacity 0.5s ease;
         }
 
         .container {
@@ -34,12 +35,34 @@
             font-size: 1.2em;
             margin-top: 20px;
         }
+
+        .go-back-button {
+            display: inline-block;
+            background-color: #0f3460;
+            color: #e43f5a;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            border: none;
+            transition: background-color 0.3s, transform 0.3s;
+            cursor: pointer;
+        }
+
+        .go-back-button:hover {
+            background-color: #16213e;
+            transform: scale(1.05);
+        }
+
+        .fade-out {
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Check Balance</h1>
         <p>Your current balance is: <span id="balance">Loading...</span></p>
+        <button class="go-back-button" onclick="goBack()">Go Back</button>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -54,7 +77,22 @@
                     const balanceElement = document.getElementById('balance');
                     balanceElement.textContent = 'Error loading balance';
                 });
+
+            window.history.pushState({page: "balance"}, "balance", "#balance");
+
+            window.onpopstate = function(event) {
+                if(event.state && event.state.page === "balance") {
+                    document.body.classList.add('fade-out');
+                    setTimeout(function() {
+                        window.location.href = 'index.html';
+                    }, 500);
+                }
+            };
         });
+
+        function goBack() {
+            history.back();
+        }
     </script>
 </body>
 </html>

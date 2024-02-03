@@ -44,12 +44,30 @@
         .fade-out {
             opacity: 0;
         }
+
+        .go-back-button {
+            display: inline-block;
+            background-color: #0f3460;
+            color: #e43f5a;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            border: none;
+            transition: background-color 0.3s, transform 0.3s;
+            cursor: pointer;
+        }
+
+        .go-back-button:hover {
+            background-color: #16213e;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>View Last Block</h1>
         <pre id="blockData">Loading...</pre>
+        <button class="go-back-button" onclick="goBack()">Go Back</button>
     </div>
 
     <script>
@@ -87,6 +105,10 @@
             }
         };
     });
+
+    function goBack() {
+        window.history.back();
+    }
 </script>
 </body>
 </html>
