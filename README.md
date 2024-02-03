@@ -34,4 +34,21 @@ Check out our [YouTube demo](https://www.youtube.com) to see BlockChat in action
 ## Collaborators
 
 <!-- readme: collaborators -start -->
+<table>
+<tr>
+    <td align="center">
+        <a href="https://github.com/johnpalaios">
+            <img src="https://avatars.githubusercontent.com/u/59118861?v=4" width="100;" alt="johnpalaios"/>
+            <br />
+            <sub><b>Yiannis Palaios</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/ntua-el15074">
+            <img src="https://avatars.githubusercontent.com/u/108369084?v=4" width="100;" alt="ntua-el15074"/>
+            <br />
+            <sub><b>Peter Avgerinos</b></sub>
+        </a>
+    </td></tr>
+</table>
 <!-- readme: collaborators -end -->
