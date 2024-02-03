@@ -52,13 +52,29 @@ func main() {
         log.Println(MyNode.Ring)
 
         // Setup the Genesis Block
-        GenesisBlock := blockchain.NewBlock(0, "1");
-        FirstTransaction := blockchain.NewTransaction(0, true, fmt.Sprint(1000*nodes), 1);
+        GenesisBlock := blockchain.Block{
+            Index: 0,
+            Timestamp: blockchain.GetTimestamp(),
+            Transactions: []blockchain.Transaction{},
+            Validator: 0,
+            CurrentHash: "",
+            PreviousHash: "1",
+        };
+
+        var FirstTransaction = blockchain.Transaction{
+            SenderAddress: MyNode.Wallet.PublicKey,
+            ReceiverAddress: 0,
+            TypeOfTransaction: true,
+            Data : fmt.Sprint(1000*nodes),
+            Nonce : 0,
+            TransactionID : "",
+            Signature : nil,
+        };
         GenesisBlock.AddTransaction(FirstTransaction, CAPACITY);
         GenesisBlock.Hashify();
 
         // Insert the Genesis Block into the Blockchain
-        MyNode.Chain.AddBlock(*GenesisBlock);
+        MyNode.Chain.AddBlock(GenesisBlock);
 
         router.Run(BOOTSTRAP_IP + ":" + BOOTSTRAP_PORT);
 

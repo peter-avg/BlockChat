@@ -1,5 +1,4 @@
 package blockchain
-
 import (
 	"crypto/sha256"
 	"encoding/hex"
@@ -50,15 +49,25 @@ func (b *Block) Hashify() {
 }
 
 // AddTransaction adds a new transaction to the block if there's capacity
-func (b *Block) AddTransaction(transaction *Transaction, capacity int) {
+func (b *Block) AddTransaction(transaction Transaction, capacity int) {
     if len(b.Transactions) < capacity {
-        b.Transactions = append(b.Transactions, *transaction)
+        b.Transactions = append(b.Transactions, transaction)
         return
     }
+
+    fmt.Println("Block is full, cannot add transaction")
+    // TODO: start proof of stake process
+    // TODO: after proof of stake, get the new blockchain probably
+    // TODO: create new block and add transaction there
 }
 
 // Set previous Hash of a block
 func (b *Block) GetPreviousHash(chain *Blockchain) {
     b.PreviousHash = chain.Chain[len(chain.Chain) - 1].CurrentHash;
 }
-
+  
+// Get a timestamp
+func GetTimestamp() int64 {
+    t := time.Now();
+    return t.UnixNano();
+}

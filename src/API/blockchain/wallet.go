@@ -51,9 +51,9 @@ func (w *Wallet) SignTransaction(transaction *Transaction) ([]byte,error) {
 }
 
 // Verify a transaction (receiver)
-func (w* Wallet) VerifyTransaction(transaction *Transaction) (bool,error) {
-	hashed := sha256.Sum256([]byte(transaction.Data))
-	err := rsa.VerifyPSS(transaction.SenderAddress, crypto.SHA256, hashed[:], transaction.Signature, nil)
+func (w* Wallet) VerifyTransaction(Data string, Signature []byte, SenderAddress *rsa.PublicKey) (bool,error) {
+	hashed := sha256.Sum256([]byte(Data))
+	err := rsa.VerifyPSS(SenderAddress, crypto.SHA256, hashed[:], Signature, nil)
     return true,err
 }
 

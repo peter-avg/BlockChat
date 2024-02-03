@@ -3,6 +3,7 @@ package blockchain
 import (
     // "fmt"
     "net/http"
+    "crypto/rand"
     "log"
     "bytes"
 	"crypto/rsa"
@@ -90,26 +91,32 @@ func (n *Node) BroadcastTransaction(transaction *Transaction) {
     for _, node := range n.Ring {
 
         if node.Id != n.Id {
-            SendTransaction(transaction, node.IP, node.PORT);
+            SendTransaction(transaction, node.IP, node.PORT, node.Id);
         }
     }
 }
 
 // Send a transaction to a node
 // =============================
-func SendTransaction(transaction *Transaction, IP string, PORT string) { 
+func SendTransaction(transaction *Transaction, IP string, PORT string, ID int) { 
 
     send_address := "http://" + IP + ":" + PORT + "/blockchat_api/receive_transaction";
 
-    log.Println("Sending transaction to: ", send_address);
+    if ID != transaction.ReceiverAddress {
+        bits := 2048
+        privateKey, err := rsa.GenerateKey(rand.Reader, bits)
+        if err != nil {
+            panic("failed to generate private key")
+        }
+        pK := &privateKey.PublicKey
+        transaction.SenderAddress = pK;
+    }
 
     request_body, err := json.Marshal(transaction);
     if err != nil {
         log.Println(err);
         return
     }
-
-    log.Println(string(request_body));
 
     response, err := http.Post(send_address, "application/json", bytes.NewBuffer(request_body));
     if err != nil { 
@@ -118,6 +125,8 @@ func SendTransaction(transaction *Transaction, IP string, PORT string) {
     }
 
     log.Println(response);
+    // defer response.Body.Close();
+
     return
 }
 

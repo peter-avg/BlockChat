@@ -151,36 +151,49 @@ func ReceiveTransaction(c *gin.Context) {
         return
     }
 
+    log.Println("Received transaction", request);
+
     type_of_data,err := strconv.ParseBool(fmt.Sprint(request.TypeOfTransaction));
 
     if err != nil { 
         log.Println(err);
     }
 
-    received_transaction := blockchain.NewTransaction(
-        MyNode.Id,
-        type_of_data,
-        request.Data,
-        MyNode.Wallet.Nonce + 1,
-    );
-    received_transaction.Signature = request.Signature;
-    received_transaction.Data = request.Data;
-    received_transaction.SenderAddress = request.SenderAddress;
-    log.Println("Received transaction", received_transaction);
+    verification,err := MyNode.Wallet.VerifyTransaction(request.Data, request.Signature, request.SenderAddress);
 
-    verification,err := MyNode.Wallet.VerifyTransaction(received_transaction);
     if err != nil {
         log.Println("Error verifying transaction", err);
+        received_transaction := blockchain.Transaction{
+            SenderAddress: request.SenderAddress,
+            ReceiverAddress: MyNode.Id,
+            TypeOfTransaction: type_of_data,
+            Data: "Not your data",
+            Nonce: MyNode.Wallet.AddTransaction(),
+            TransactionID: "",
+            Signature: request.Signature,
+        }
+
+        MyNode.CurrentBlock.AddTransaction(received_transaction,CAPACITY);
+
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
-    MyNode.CurrentBlock.AddTransaction(received_transaction,CAPACITY);
-
-    if verification { 
+    if verification {
         log.Println("Transaction verified");
     }
 
-    log.Println("Received transaction", received_transaction);
+    received_transaction := blockchain.Transaction{
+        SenderAddress: request.SenderAddress,
+        ReceiverAddress: MyNode.Id,
+        TypeOfTransaction: type_of_data,
+        Data: request.Data,
+        Nonce: MyNode.Wallet.AddTransaction(),
+        TransactionID: "",
+        Signature: request.Signature,
+    }
+
+    MyNode.CurrentBlock.AddTransaction(received_transaction,CAPACITY);
 
     // Send response
     c.JSON(http.StatusOK, gin.H{
