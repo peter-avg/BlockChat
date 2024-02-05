@@ -2,7 +2,10 @@ package blockchain
 
 import (
     // "fmt"
+    "errors"
+    "strconv"
     "net/http"
+    "sync"
     // "crypto/rand"
     "log"
     "bytes"
@@ -137,22 +140,54 @@ func (n *Node) SendNewNode(info *NodeInfo, IP string, PORT string, ID int) bool 
 // Broadcast transaction to all nodes
 // =================================
 func (n *Node) BroadcastTransaction(transaction *Transaction) bool {
-    for _, node := range n.Ring {
+    var wg sync.WaitGroup
+    errChV := make(chan error, len(n.Ring))
+    errChS := make(chan error, len(n.Ring))
 
+    for _, node := range n.Ring {
         if node.Id != n.Id {
-            if n.ValidateTransaction(transaction, node.IP, node.PORT, node.Id) == false {
-                return false
-            }
+            wg.Add(1)
+            
+            go func(node NodeInfo) {
+                defer wg.Done()
+                if !n.ValidateTransaction(transaction, node.IP, node.PORT, node.Id) {
+                    errChV <- errors.New("Validation failed for Node " + strconv.Itoa(node.Id))
+                }
+            }(node)
         }
     }
 
-    for _, node := range n.Ring {
+    go func() {
+        wg.Wait()
+        close(errChV)
+    }()
 
+    for err := range errChV {
+        log.Println(err)
+        return false
+    }
+
+    for _, node := range n.Ring {
         if node.Id != n.Id {
-            if n.SendTransaction(transaction, node.IP, node.PORT, node.Id) == false {
-                return false
-            }
+            wg.Add(1)
+            
+            go func(node NodeInfo) {
+                defer wg.Done()
+                if !n.SendTransaction(transaction, node.IP, node.PORT, node.Id) {
+                    errChS <- errors.New("Sending failed for Node " + strconv.Itoa(node.Id))
+                }
+            }(node)
         }
+    }
+
+    go func() {
+        wg.Wait()
+        close(errChS)
+    }()
+
+    for err := range errChS {
+        log.Println(err)
+        return false
     }
 
     return true
@@ -214,22 +249,54 @@ func (n *Node) SendTransaction(transaction *Transaction, IP string, PORT string,
 // Broadcast stake to all nodes
 // ============================
 func (n *Node) BroadcastStake(info NodeInfo) bool {
-    for _, node := range n.Ring {
+    var wg sync.WaitGroup
+    errChV := make(chan error, len(n.Ring))
+    errChS := make(chan error, len(n.Ring))
 
+    for _, node := range n.Ring {
         if node.Id != n.Id {
-            if n.ValidateStake(info, node.IP, node.PORT, node.Id) == false {
-                return false
-            }
+            wg.Add(1)
+            
+            go func(node NodeInfo) {
+                defer wg.Done()
+                if !n.ValidateStake(node, node.IP, node.PORT, node.Id) {
+                    errChV <- errors.New("Validation failed for Node " + strconv.Itoa(node.Id))
+                }
+            }(node)
         }
     }
 
-    for _, node := range n.Ring {
+    go func() {
+        wg.Wait()
+        close(errChV)
+    }()
 
+    for err := range errChV {
+        log.Println(err)
+        return false
+    }
+
+    for _, node := range n.Ring {
         if node.Id != n.Id {
-            if n.SendStake(info, node.IP, node.PORT, node.Id) == false {
-                return false
-            }
+            wg.Add(1)
+            
+            go func(node NodeInfo) {
+                defer wg.Done()
+                if !n.SendStake(node, node.IP, node.PORT, node.Id) {
+                    errChS <- errors.New("Sending failed for Node " + strconv.Itoa(node.Id))
+                }
+            }(node)
         }
+    }
+
+    go func() {
+        wg.Wait()
+        close(errChS)
+    }()
+
+    for err := range errChS {
+        log.Println(err)
+        return false
     }
 
     return true
