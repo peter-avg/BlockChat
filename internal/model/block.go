@@ -49,6 +49,28 @@ func (b *Block) Hashify() {
 	b.CurrentHash = hex.EncodeToString(hash[:])
 }
 
+// GetPreviousHash Set previous Hash of a block
+func (b *Block) GetPreviousHash(chain *Blockchain) {
+	b.PreviousHash = chain.Chain[len(chain.Chain)-1].CurrentHash
+}
+
+// GetTimestamp Get a timestamp
+func GetTimestamp() int64 {
+	t := time.Now()
+	return t.UnixNano()
+}
+
+// Block toString()
+func (b *Block) String() string {
+	transactionsString := "Block Transaction:\t"
+	for ind, transaction := range b.Transactions {
+		transactionsString += fmt.Sprintf("\n\t\t\t\t\t Transaction %d : %s",
+			ind, transaction.String())
+	}
+	return fmt.Sprintf("Index: %d, Timestamp: %d, Transactions: %v, Validator: %d, CurrentHash: %s, PreviousHash: %s",
+		b.Index, b.Timestamp, transactionsString, b.Validator, b.CurrentHash, b.PreviousHash)
+}
+
 // AddTransaction adds a new transaction to the block if there's capacity
 func (b *Block) AddTransaction(transaction Transaction, capacity int) {
 	if len(b.Transactions) < capacity {
@@ -82,26 +104,4 @@ func (b *Block) AddTransaction(transaction Transaction, capacity int) {
 	// create new (empty)? block
 	// and make it the end of the blockchain
 	// TODO: create new block and add transaction there
-}
-
-// GetPreviousHash Set previous Hash of a block
-func (b *Block) GetPreviousHash(chain *Blockchain) {
-	b.PreviousHash = chain.Chain[len(chain.Chain)-1].CurrentHash
-}
-
-// GetTimestamp Get a timestamp
-func GetTimestamp() int64 {
-	t := time.Now()
-	return t.UnixNano()
-}
-
-// Block toString()
-func (b *Block) String() string {
-	transactionsString := "Block Transaction:\t"
-	for ind, transaction := range b.Transactions {
-		transactionsString += fmt.Sprintf("\n\t\t\t\t\t Transaction %d : %s",
-			ind, transaction.String())
-	}
-	return fmt.Sprintf("Index: %d, Timestamp: %d, Transactions: %v, Validator: %d, CurrentHash: %s, PreviousHash: %s",
-		b.Index, b.Timestamp, transactionsString, b.Validator, b.CurrentHash, b.PreviousHash)
 }

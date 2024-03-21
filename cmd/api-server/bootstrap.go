@@ -4,7 +4,7 @@ import (
 	"block-chat/internal/config"
 	"block-chat/internal/endpoints"
 	"block-chat/internal/model"
-	"block-chat/internal/services"
+	"block-chat/internal/utils"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -96,7 +96,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		MyNode.Chain, MyNode.Ring, MyNode.Wallet.Balance, err = services.DeserializeRegisterNodeResponse(response)
+		MyNode.Chain, MyNode.Ring, MyNode.Wallet.Balance, err = utils.DeserializeRegisterNodeResponse(response)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -14,13 +14,21 @@ import (
 // ===================================
 func SendTransaction(c *gin.Context, MyNode *model.Node) {
 	var request model.SendTransactionRequest
+	// problem in JSON binding
+	//body, err := ioutil.ReadAll(c.Request.Body)
+	//if err != nil {
+	//	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read request body"})
+	//	return
+	//}
+	//fmt.Println("Incoming request body:", string(body))
 
 	if err := c.BindJSON(&request); err != nil {
 		log.Println("Error binding JSON")
 	}
-
 	receiver, err := strconv.Atoi(string(request.Recipient[len(request.Recipient)-1]))
+
 	if err != nil {
+		log.Println("request.Recipient : " + request.Recipient)
 		log.Println(err)
 	}
 
@@ -44,7 +52,8 @@ func SendTransaction(c *gin.Context, MyNode *model.Node) {
 	log.Println("Sending transaction", new_transaction)
 
 	transaction_fee := new_transaction.CalculateFee()
-	if transaction_fee > MyNode.Wallet.Balance {
+	//if transaction_fee > MyNode.Wallet.Balance {
+	if MyNode.Wallet.DeductMoney(transaction_fee) == false {
 		log.Println("Insufficient funds to send transaction")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Insufficient funds to send transaction",
@@ -78,7 +87,7 @@ func ValidateTransaction(c *gin.Context, MyNode *model.Node) {
 		return
 	}
 
-	sig_ok, err := MyNode.Wallet.VerifyTransaction(request.Data, request.Signature, request.SenderAddress)
+	sig_ok, err := MyNode.Wallet.VerifySignature(request.Data, request.Signature, request.SenderAddress)
 
 	if err != nil {
 		log.Println("Error validated signature", err)

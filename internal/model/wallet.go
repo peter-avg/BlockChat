@@ -50,8 +50,8 @@ func (w *Wallet) SignTransaction(transaction *Transaction) ([]byte, error) {
 	return signature, nil
 }
 
-// VerifyTransaction Verify a transaction (receiver)
-func (w *Wallet) VerifyTransaction(Data string, Signature []byte, SenderAddress *rsa.PublicKey) (bool, error) {
+// VerifyTransaction Verify transaction signature (receiver)
+func (w *Wallet) VerifySignature(Data string, Signature []byte, SenderAddress *rsa.PublicKey) (bool, error) {
 	hashed := sha256.Sum256([]byte(Data))
 	err := rsa.VerifyPSS(SenderAddress, crypto.SHA256, hashed[:], Signature, nil)
 	return true, err
@@ -63,7 +63,6 @@ func (w *Wallet) DeductMoney(Amount int) bool {
 		w.Balance -= Amount
 		return true
 	}
-
 	return false
 }
 

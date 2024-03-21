@@ -29,18 +29,21 @@ func InitRouter(myNode *model.Node) *gin.Engine {
 	router.POST("/blockchat_api/receive_transaction", func(c *gin.Context) {
 		handlers.ReceiveTransaction(c, myNode)
 	})
-	router.POST("/blockchat_api/receive_stake", func(c *gin.Context) {
-		handlers.ReceiveStake(c, myNode)
-	})
-	router.POST("/blockchat_api/validate_stake", func(c *gin.Context) {
-		handlers.ValidateStake(c, myNode)
-	})
+	// must make one for new block addition
+
+	//router.POST("/blockchat_api/receive_stake", func(c *gin.Context) {
+	//	handlers.ReceiveStake(c, myNode)
+	//})
+	//router.POST("/blockchat_api/validate_stake", func(c *gin.Context) {
+	//	handlers.ValidateStake(c, myNode)
+	//})
 
 	// Client Endpoints of API
 	// =======================
 	router.POST("/blockchat_api/set_stake", func(c *gin.Context) {
 		handlers.SetStake(c, myNode)
 	})
+
 	router.POST("/blockchat_api/send_transaction", func(c *gin.Context) {
 		handlers.SendTransaction(c, myNode)
 	})

@@ -1,15 +1,19 @@
 package handlers
 
 import (
+	"block-chat/internal/config"
 	"block-chat/internal/model"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"strconv"
 )
 
-// Set Stake for Proof of Stake
-// ============================
+// Broadcast a stake transaction
+// ===================================
 func SetStake(c *gin.Context, MyNode *model.Node) {
+	// Stake is a Transaction with a Recipient Address == -1
+
 	var request model.SetStakeRequest
 
 	if err := c.BindJSON(&request); err != nil {
@@ -18,71 +22,61 @@ func SetStake(c *gin.Context, MyNode *model.Node) {
 		return
 	}
 
-	if MyNode.Wallet.DeductMoney(request.Stake) == false {
+	var stakeAmount int = request.Stake
+	var receiverAddress int = -1
+
+	var stakeTransaction = model.NewTransaction(
+		receiverAddress,
+		true,
+		"",
+		MyNode.Wallet.AddTransaction(),
+	)
+
+	var err error
+	stakeTransaction.Signature, err = MyNode.Wallet.SignTransaction(stakeTransaction)
+	stakeTransaction.SenderAddress = MyNode.Wallet.PublicKey
+	if err != nil {
+		log.Println("Error signing stake transaction", err)
+	}
+
+	if MyNode.Wallet.DeductMoney(stakeAmount) == false {
 		log.Println("Could not set stake, insufficient funds")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not set stake, insufficient funds"})
 		return
 	}
 
-	nodeInfo := model.NodeInfo{
-		Id:    MyNode.Id,
-		Stake: request.Stake,
-	}
-
-	if MyNode.BroadcastStake(nodeInfo) {
-		log.Println("Stake broadcasted")
-		log.Println("Setting stake", request.Stake)
-		MyNode.Ring[MyNode.Id].Stake = request.Stake
+	if MyNode.BroadcastTransaction(stakeTransaction) {
+		log.Println("Stake Transaction broadcasted")
+		MyNode.CurrentBlock.AddTransaction(*stakeTransaction, config.CAPACITY)
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Stake set",
+			"message": "Stake Transaction of amount " + strconv.Itoa(stakeAmount) + " broadcasted",
 		})
+
 		return
 	}
 
-	log.Println("Stake not set")
 	c.JSON(http.StatusBadRequest, gin.H{
-		"error": "Stake not set",
+		"error": "Stake transaction not sent",
 	})
-}
 
-// Validate Stake
-// ==============
-func ValidateStake(c *gin.Context, MyNode *model.Node) {
-	var request model.NodeInfo
-
-	if err := c.BindJSON(&request); err != nil {
-		log.Println("Error binding JSON")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if request.Stake > MyNode.Ring[request.Id].Balance {
-		log.Println("Insufficient funds to set stake")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Insufficient funds to set stake",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Stake validated",
-	})
-}
-
-// Receive Stake
-// =============
-func ReceiveStake(c *gin.Context, MyNode *model.Node) {
-	var request model.NodeInfo
-
-	if err := c.BindJSON(&request); err != nil {
-		log.Println("Error binding JSON")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	MyNode.Ring[request.Id].Stake = request.Stake
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Stake received",
-	})
+	//
+	//nodeInfo := model.NodeInfo{
+	//	Id:    MyNode.Id,
+	//	Stake: request.Stake,
+	//}
+	//
+	//if MyNode.BroadcastStake(nodeInfo) {
+	//	log.Println("Stake broadcasted")
+	//	log.Println("Setting stake", request.Stake)
+	//	MyNode.Ring[MyNode.Id].Stake = request.Stake
+	//	c.JSON(http.StatusOK, gin.H{
+	//		"message": "Stake set",
+	//	})
+	//	return
+	//}
+	//
+	//log.Println("Stake not set")
+	//c.JSON(http.StatusBadRequest, gin.H{
+	//	"error": "Stake not set",
+	//})
 }
