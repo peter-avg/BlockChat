@@ -2,6 +2,7 @@ package main
 
 import (
 	"block-chat/internal/config"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/urfave/cli"
@@ -72,8 +73,8 @@ func main() {
 
 	app := &cli.App{
 
-		Name:  "BlockChat",
-		Usage: "Used to interact with the BlockChat Application!!!",
+		Name:  "BlockChat CLI",
+		Usage: "Used to interact with the BlockChat Application",
 
 		Flags: []cli.Flag{
 			port,
@@ -90,6 +91,7 @@ func main() {
 				if err != nil {
 					return err
 				}
+				return nil
 			}
 
 			var isTransactionSet bool = c.IsSet("t")
@@ -104,7 +106,7 @@ func main() {
 				log.Println("Using Port Specified : " + strconv.Itoa(portNumber))
 				apiUrl += strconv.Itoa(portNumber)
 			} else {
-				log.Println("Port not specified. Set to default" + config.DEFAULT_PORT + ".")
+				log.Println("Port not specified. Set to default : " + config.DEFAULT_PORT + ".")
 				apiUrl += config.DEFAULT_PORT
 			}
 
@@ -114,13 +116,14 @@ func main() {
 			// ========================================
 			if isTransactionSet {
 				log.Println("txn")
+				data := make(map[string]interface{})
 				recipientId := c.Args().Get(0)
 				messageOrBCC := c.Args().Get(1)
 				log.Println("firstParam : " + recipientId)
 				log.Println("secondParam : " + messageOrBCC)
 
 				transactionUrl := apiUrl + "send_transaction"
-				data := url.Values{}
+				//data := url.Values{}
 				if recipientId == "" {
 					fmt.Println("Usage: -{t,-t} <recipient_address> <Message or Number of BlockChat Coins> : To produce a transaction")
 					return nil
@@ -135,27 +138,41 @@ func main() {
 						return nil
 					}
 					log.Println("It is a message")
-					data.Set("recipient_id", recipientId)
-					data.Set("message_or_bitcoin", "0")
-					data.Set("data", message)
+
+					data["recipient_id"] = recipientId
+					data["message_or_bitcoin"] = 0
+					data["data"] = message
+
+					//data.Set("recipient_id", recipientId)
+					//data.Set("message_or_bitcoin", "0")
+					//data.Set("data", message)
 				}
 
 				if err == nil {
 					numberOfBlockChatCoins := messageOrBCC
 					log.Println("It is BCC : " + messageOrBCC)
 
-					data.Set("recipient_id", recipientId)
-					data.Set("message_or_bitcoin", "1")
-					data.Set("data", numberOfBlockChatCoins)
+					data["recipient_id"] = recipientId
+					data["message_or_bitcoin"] = 1
+					data["data"] = numberOfBlockChatCoins
+
+					//data.Set("recipient_id", recipientId)
+					//data.Set("message_or_bitcoin", "1")
+					//data.Set("data", numberOfBlockChatCoins)
 				}
-				log.Println(data)
-				r, err := http.NewRequest("POST", transactionUrl, strings.NewReader(data.Encode()))
+				jsonData, err := json.Marshal(data)
+				if err != nil {
+					fmt.Println("Error marshaling JSON:", err)
+					return nil
+				}
+
+				r, err := http.NewRequest("POST", transactionUrl, bytes.NewBuffer(jsonData))
 				if err != nil {
 					fmt.Println("Error creating request:", err)
 					return nil
 				}
 
-				r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+				r.Header.Set("Content-Type", "application/json")
 
 				client := &http.Client{}
 				resp, err := client.Do(r)
@@ -226,7 +243,7 @@ func main() {
 				defer resp.Body.Close()
 
 				body, err := io.ReadAll(resp.Body)
-
+				log.Println("Response Body : " + string(body))
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -253,34 +270,32 @@ func main() {
 			// View Balance Function Implementation
 			// ====================================
 			if isBalanceSet {
-				fmt.Println("Balance!")
+				balanceUrl := apiUrl + "get_balance"
 
-				//balanceUrl := apiUrl + "get_balance"
-				//
-				//resp, err := http.Get(balanceUrl)
-				//if err != nil {
-				//	log.Fatal(err)
-				//}
-				//defer resp.Body.Close()
-				//
-				//body, err := io.ReadAll(resp.Body)
-				//
-				//if err != nil {
-				//	log.Fatal(err)
-				//}
-				//
-				//var apiResponse BalanceResponse
-				//if err := json.Unmarshal(body, &apiResponse); err != nil {
-				//	log.Fatal(err)
-				//}
-				//
-				//fmt.Println("Your Balance is:")
-				//fmt.Println(apiResponse.Balance)
+				resp, err := http.Get(balanceUrl)
+				if err != nil {
+					log.Fatal(err)
+				}
+				defer resp.Body.Close()
+
+				body, err := io.ReadAll(resp.Body)
+
+				if err != nil {
+					log.Fatal(err)
+				}
+				var apiResponse BalanceResponse
+				if err := json.Unmarshal(body, &apiResponse); err != nil {
+					log.Fatal(err)
+				}
+				fmt.Printf("Your Balance is : %.3f BlockChat Coins.\n", apiResponse.Balance)
 			}
 
 			return nil
 		},
 	}
 
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	if err != nil {
+		return
+	}
 }

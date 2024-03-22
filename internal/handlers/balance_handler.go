@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"block-chat/internal/model"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -11,6 +10,6 @@ import (
 // =======================
 func GetBalance(c *gin.Context, MyNode *model.Node) {
 	c.JSON(http.StatusOK, gin.H{
-		"balance": fmt.Sprint(MyNode.Wallet.Balance),
+		"balance": MyNode.Wallet.Balance,
 	})
 }

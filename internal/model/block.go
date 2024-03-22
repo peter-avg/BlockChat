@@ -62,13 +62,15 @@ func GetTimestamp() int64 {
 
 // Block toString()
 func (b *Block) String() string {
-	transactionsString := "Block Transaction:\t"
+	t := time.Unix(0, b.Timestamp)
+	var timeString string = t.Format("15:04:05")
+	transactionsString := ""
 	for ind, transaction := range b.Transactions {
-		transactionsString += fmt.Sprintf("\n\t\t\t\t\t Transaction %d : %s",
+		transactionsString += fmt.Sprintf("\n\t\t Transaction %d : %s",
 			ind, transaction.String())
 	}
-	return fmt.Sprintf("Index: %d, Timestamp: %d, Transactions: %v, Validator: %d, CurrentHash: %s, PreviousHash: %s",
-		b.Index, b.Timestamp, transactionsString, b.Validator, b.CurrentHash, b.PreviousHash)
+	return fmt.Sprintf("Index: %d, Timestamp: %s,\n\tTransactions: %s, Validator: %d, CurrentHash: %s, PreviousHash: %s",
+		b.Index, timeString, transactionsString, b.Validator, b.CurrentHash, b.PreviousHash)
 }
 
 // AddTransaction adds a new transaction to the block if there's capacity

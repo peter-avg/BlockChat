@@ -14,16 +14,10 @@ import (
 // ===================================
 func SendTransaction(c *gin.Context, MyNode *model.Node) {
 	var request model.SendTransactionRequest
-	// problem in JSON binding
-	//body, err := ioutil.ReadAll(c.Request.Body)
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read request body"})
-	//	return
-	//}
-	//fmt.Println("Incoming request body:", string(body))
 
 	if err := c.BindJSON(&request); err != nil {
-		log.Println("Error binding JSON")
+		log.Println("Error binding JSON. Error Message : " + err.Error())
+		return
 	}
 	receiver, err := strconv.Atoi(string(request.Recipient[len(request.Recipient)-1]))
 
