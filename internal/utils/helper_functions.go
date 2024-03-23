@@ -11,7 +11,7 @@ import (
 
 // Receive a RegisterNodeResponse and convert to Ring and Chain
 // ============================================================
-func DeserializeRegisterNodeResponse(response *http.Response) (model.Blockchain, []model.NodeInfo, int, error) {
+func DeserializeRegisterNodeResponse(response *http.Response) (model.Blockchain, []model.NodeInfo, float64, error) {
 	body, err := io.ReadAll(response.Body)
 
 	if err != nil {

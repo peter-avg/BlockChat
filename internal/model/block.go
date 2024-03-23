@@ -94,7 +94,7 @@ func (b *Block) AddTransaction(transaction Transaction, capacity int) {
 
 	// stake transactions are transactions with
 	// receiver_address equal to 0
-	var totalAmountStaked int = 0
+	var totalAmountStaked float64 = 0
 	for _, transaction := range blockTransactions {
 		if transaction.ReceiverAddress == -1 {
 			var stakeAmount = transaction.CalculateFee()

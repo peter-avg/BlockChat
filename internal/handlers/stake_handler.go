@@ -13,7 +13,6 @@ import (
 // ===================================
 func SetStake(c *gin.Context, MyNode *model.Node) {
 	// Stake is a Transaction with a Recipient Address == -1
-
 	var request model.SetStakeRequest
 
 	if err := c.BindJSON(&request); err != nil {
@@ -22,13 +21,13 @@ func SetStake(c *gin.Context, MyNode *model.Node) {
 		return
 	}
 
-	var stakeAmount int = request.Stake
-	var receiverAddress int = -1
+	var stakeAmount = request.Stake
+	var receiverAddress = -1
 
 	var stakeTransaction = model.NewTransaction(
 		receiverAddress,
 		true,
-		"",
+		strconv.FormatFloat(stakeAmount, 'f', -1, 64),
 		MyNode.Wallet.AddTransaction(),
 	)
 
@@ -49,7 +48,7 @@ func SetStake(c *gin.Context, MyNode *model.Node) {
 		log.Println("Stake Transaction broadcasted")
 		MyNode.CurrentBlock.AddTransaction(*stakeTransaction, config.CAPACITY)
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Stake Transaction of amount " + strconv.Itoa(stakeAmount) + " broadcasted",
+			"message": "Stake Transaction of amount " + strconv.FormatFloat(stakeAmount, 'f', -1, 64) + " broadcasted",
 		})
 
 		return
@@ -58,25 +57,4 @@ func SetStake(c *gin.Context, MyNode *model.Node) {
 	c.JSON(http.StatusBadRequest, gin.H{
 		"error": "Stake transaction not sent",
 	})
-
-	//
-	//nodeInfo := model.NodeInfo{
-	//	Id:    MyNode.Id,
-	//	Stake: request.Stake,
-	//}
-	//
-	//if MyNode.BroadcastStake(nodeInfo) {
-	//	log.Println("Stake broadcasted")
-	//	log.Println("Setting stake", request.Stake)
-	//	MyNode.Ring[MyNode.Id].Stake = request.Stake
-	//	c.JSON(http.StatusOK, gin.H{
-	//		"message": "Stake set",
-	//	})
-	//	return
-	//}
-	//
-	//log.Println("Stake not set")
-	//c.JSON(http.StatusBadRequest, gin.H{
-	//	"error": "Stake not set",
-	//})
 }

@@ -69,10 +69,11 @@ func (t *Transaction) Hashify() {
 }
 
 // CalculateFee Calculate transaction fee for messages of bitcoin
-func (t *Transaction) CalculateFee() int {
+func (t *Transaction) CalculateFee() float64 {
 	// if it's bitcoin, the fee is the data
 	if t.TypeOfTransaction {
-		res, err := strconv.Atoi(t.Data)
+		res, err := strconv.ParseFloat(t.Data, 64)
+
 		if err != nil {
 			println("Error converting data to int")
 			return 0
@@ -80,6 +81,6 @@ func (t *Transaction) CalculateFee() int {
 		return res
 	}
 	// if it's a message, for every character in the string, it costs one bitcoin
-	return len(t.Data)
+	return float64(len(t.Data))
 
 }

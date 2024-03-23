@@ -21,8 +21,8 @@ type NodeInfo struct {
 	IP        string         `json:"IP"`
 	PORT      string         `json:"PORT"`
 	PublicKey *rsa.PublicKey `json:"PublicKey"`
-	Balance   int            `json:"Balance"`
-	Stake     int            `json:"stake"`
+	Balance   float64        `json:"Balance"`
+	Stake     float64        `json:"stake"`
 }
 
 // Node struct contains Blockchain info
@@ -39,7 +39,7 @@ type Node struct {
 // NewNodeInfo creates and returns a new NodeInfo
 // =============================================
 func NewNodeInfo(id int, ip string, port string,
-	PublicKey *rsa.PublicKey, balance int) *NodeInfo {
+	PublicKey *rsa.PublicKey, balance float64) *NodeInfo {
 	return &NodeInfo{
 		Id:        id,
 		IP:        ip,
@@ -266,9 +266,9 @@ func (n *Node) SendTransaction(transaction *Transaction, IP string, PORT string,
 
 	if response.StatusCode == 200 {
 		if transaction.ReceiverAddress == -1 {
-			log.Println("Stake Transaction of amount "+strconv.Itoa(transaction.CalculateFee())+" sent to Node ", ID)
+			log.Println("Stake Transaction of amount "+strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64)+" sent to Node ", ID)
 		} else {
-			log.Println("Transaction of amount "+strconv.Itoa(transaction.CalculateFee())+" sent to Node ", ID)
+			log.Println("Transaction of amount "+strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64)+" sent to Node ", ID)
 		}
 		return true
 	}

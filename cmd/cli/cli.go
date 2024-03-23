@@ -9,10 +9,8 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
-	"strings"
 )
 
 // JSON structs for Unmarshall
@@ -34,7 +32,7 @@ type BalanceResponse struct {
 }
 
 var portNumber int
-var stakeAmount int
+var stakeAmount float64
 
 // Cli Function declaration
 var port = &cli.IntFlag{
@@ -47,7 +45,7 @@ var transaction = &cli.BoolFlag{
 	Usage: "-{t,-t} <recipient_address> <Message or Number of BlockChat Coins> : To produce a transaction",
 }
 
-var stake = &cli.IntFlag{
+var stake = &cli.Float64Flag{
 	Name:        "stake",
 	Usage:       "-{stake,-stake} <amount> : To produce a stake",
 	Destination: &stakeAmount,
@@ -193,28 +191,23 @@ func main() {
 			// Set Stake Function Implementation
 			// =================================
 			if isStakeSet {
-
+				requestData := make(map[string]interface{})
 				stakeUrl := apiUrl + "set_stake"
 
-				_, err := strconv.ParseFloat(c.Args().Get(0), 32)
+				requestData["stake"] = stakeAmount
 
+				jsonData, err := json.Marshal(requestData)
 				if err != nil {
-					fmt.Println("Usage: cli -stake <amount> : To produce a stake")
+					fmt.Println("Error marshaling JSON:", err)
 					return nil
 				}
 
-				stakeValue := c.Args().Get(0)
-
-				data := url.Values{}
-				data.Set("stake", stakeValue)
-
-				r, err := http.NewRequest("POST", stakeUrl, strings.NewReader(data.Encode()))
+				r, err := http.NewRequest("POST", stakeUrl, bytes.NewBuffer(jsonData))
 				if err != nil {
-					fmt.Println("Error creating request:", err)
+					fmt.Println("Error creating stake request:", err)
 					return nil
 				}
-
-				r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+				r.Header.Set("Content-Type", "application/json")
 
 				client := &http.Client{}
 				resp, err := client.Do(r)
@@ -225,10 +218,43 @@ func main() {
 				defer resp.Body.Close()
 
 				if resp.StatusCode == 200 {
-					fmt.Println("Stake was set")
+					fmt.Println("Your stake transaction has been submitted")
 				} else {
-					fmt.Println("Failed to set stake, status code:", resp.StatusCode)
+					fmt.Println("Failed to submit stake transaction: ", resp.StatusCode)
 				}
+				//_, err := strconv.ParseFloat(stakeAmount, 32)
+
+				//if err != nil {
+				//	fmt.Println("Usage: cli -stake <amount> : To produce a stake")
+				//	return nil
+				//}
+				//
+				//stakeValue := c.Args().Get(0)
+				//
+				//data := url.Values{}
+				//data.Set("stake", stakeValue)
+				//
+				//r, err := http.NewRequest("POST", stakeUrl, strings.NewReader(data.Encode()))
+				//if err != nil {
+				//	fmt.Println("Error creating request:", err)
+				//	return nil
+				//}
+				//
+				//r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+				//
+				//client := &http.Client{}
+				//resp, err := client.Do(r)
+				//if err != nil {
+				//	fmt.Println("Error sending request:", err)
+				//	return nil
+				//}
+				//defer resp.Body.Close()
+				//
+				//if resp.StatusCode == 200 {
+				//	fmt.Println("Stake was set")
+				//} else {
+				//	fmt.Println("Failed to set stake, status code:", resp.StatusCode)
+				//}
 			}
 
 			// View Last Block Function Implementation
@@ -248,23 +274,23 @@ func main() {
 					log.Fatal(err)
 				}
 
-				var apiResponse ViewResponse
-				if err := json.Unmarshal(body, &apiResponse); err != nil {
-					log.Fatal(err)
-				}
-
-				var lastBlock LastBlockData
-				if err := json.Unmarshal([]byte(apiResponse.LastBlock), &lastBlock); err != nil {
-					log.Fatal(err)
-				}
-
-				prettyLastBlock, err := json.MarshalIndent(lastBlock, "", "  ")
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				fmt.Println("The Last Block is:")
-				fmt.Println(string(prettyLastBlock))
+				//var apiResponse ViewResponse
+				//if err := json.Unmarshal(body, &apiResponse); err != nil {
+				//	log.Fatal(err)
+				//}
+				//
+				//var lastBlock LastBlockData
+				//if err := json.Unmarshal([]byte(apiResponse.LastBlock), &lastBlock); err != nil {
+				//	log.Fatal(err)
+				//}
+				//
+				//prettyLastBlock, err := json.MarshalIndent(lastBlock, "", "  ")
+				//if err != nil {
+				//	log.Fatal(err)
+				//}
+				//
+				//fmt.Println("The Last Block is:")
+				//fmt.Println(string(prettyLastBlock))
 			}
 
 			// View Balance Function Implementation

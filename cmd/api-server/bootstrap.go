@@ -48,8 +48,8 @@ func main() {
 		// Setup the Bootstrap node
 		MyNode.Id = 0
 		MyNode.GenerateWallet()
-		MyNodeInfo := model.NewNodeInfo(MyNode.Id, BOOTSTRAP_IP, BOOTSTRAP_PORT, MyNode.Wallet.PublicKey, nodes*1000)
-		MyNode.Wallet.Balance = nodes * 1000
+		MyNodeInfo := model.NewNodeInfo(MyNode.Id, BOOTSTRAP_IP, BOOTSTRAP_PORT, MyNode.Wallet.PublicKey, float64(nodes*1000))
+		MyNode.Wallet.Balance = float64(nodes * 1000)
 		MyNode.AddNewInfo(MyNodeInfo)
 		log.Println(MyNode.Ring)
 

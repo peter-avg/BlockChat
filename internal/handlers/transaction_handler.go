@@ -46,8 +46,7 @@ func SendTransaction(c *gin.Context, MyNode *model.Node) {
 	log.Println("Sending transaction", new_transaction)
 
 	transaction_fee := new_transaction.CalculateFee()
-	//if transaction_fee > MyNode.Wallet.Balance {
-	if MyNode.Wallet.DeductMoney(transaction_fee) == false {
+	if transaction_fee > MyNode.Wallet.Balance {
 		log.Println("Insufficient funds to send transaction")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Insufficient funds to send transaction",
@@ -61,7 +60,6 @@ func SendTransaction(c *gin.Context, MyNode *model.Node) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Transaction sent",
 		})
-
 		return
 	}
 

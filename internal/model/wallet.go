@@ -11,7 +11,7 @@ import (
 type Wallet struct {
 	PublicKey  *rsa.PublicKey
 	PrivateKey *rsa.PrivateKey
-	Balance    int
+	Balance    float64
 	NodeID     int
 	Nonce      int
 }
@@ -58,7 +58,7 @@ func (w *Wallet) VerifySignature(Data string, Signature []byte, SenderAddress *r
 }
 
 // DeductMoney Deduct money from the wallet
-func (w *Wallet) DeductMoney(Amount int) bool {
+func (w *Wallet) DeductMoney(Amount float64) bool {
 	if w.Balance-Amount >= 0 {
 		w.Balance -= Amount
 		return true
@@ -67,6 +67,6 @@ func (w *Wallet) DeductMoney(Amount int) bool {
 }
 
 // AddMoney Add money to the wallet
-func (w *Wallet) AddMoney(Amount int) {
+func (w *Wallet) AddMoney(Amount float64) {
 	w.Balance += Amount
 }
