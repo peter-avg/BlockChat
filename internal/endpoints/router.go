@@ -31,13 +31,6 @@ func InitRouter(myNode *model.Node) *gin.Engine {
 	})
 	// must make one for new block addition
 
-	//router.POST("/blockchat_api/receive_stake", func(c *gin.Context) {
-	//	handlers.ReceiveStake(c, myNode)
-	//})
-	//router.POST("/blockchat_api/validate_stake", func(c *gin.Context) {
-	//	handlers.ValidateStake(c, myNode)
-	//})
-
 	// Client Endpoints of API
 	// =======================
 	router.POST("/blockchat_api/set_stake", func(c *gin.Context) {

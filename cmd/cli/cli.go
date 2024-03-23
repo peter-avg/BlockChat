@@ -121,7 +121,6 @@ func main() {
 				log.Println("secondParam : " + messageOrBCC)
 
 				transactionUrl := apiUrl + "send_transaction"
-				//data := url.Values{}
 				if recipientId == "" {
 					fmt.Println("Usage: -{t,-t} <recipient_address> <Message or Number of BlockChat Coins> : To produce a transaction")
 					return nil
@@ -140,10 +139,6 @@ func main() {
 					data["recipient_id"] = recipientId
 					data["message_or_bitcoin"] = 0
 					data["data"] = message
-
-					//data.Set("recipient_id", recipientId)
-					//data.Set("message_or_bitcoin", "0")
-					//data.Set("data", message)
 				}
 
 				if err == nil {
@@ -153,10 +148,6 @@ func main() {
 					data["recipient_id"] = recipientId
 					data["message_or_bitcoin"] = 1
 					data["data"] = numberOfBlockChatCoins
-
-					//data.Set("recipient_id", recipientId)
-					//data.Set("message_or_bitcoin", "1")
-					//data.Set("data", numberOfBlockChatCoins)
 				}
 				jsonData, err := json.Marshal(data)
 				if err != nil {
@@ -222,39 +213,6 @@ func main() {
 				} else {
 					fmt.Println("Failed to submit stake transaction: ", resp.StatusCode)
 				}
-				//_, err := strconv.ParseFloat(stakeAmount, 32)
-
-				//if err != nil {
-				//	fmt.Println("Usage: cli -stake <amount> : To produce a stake")
-				//	return nil
-				//}
-				//
-				//stakeValue := c.Args().Get(0)
-				//
-				//data := url.Values{}
-				//data.Set("stake", stakeValue)
-				//
-				//r, err := http.NewRequest("POST", stakeUrl, strings.NewReader(data.Encode()))
-				//if err != nil {
-				//	fmt.Println("Error creating request:", err)
-				//	return nil
-				//}
-				//
-				//r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-				//
-				//client := &http.Client{}
-				//resp, err := client.Do(r)
-				//if err != nil {
-				//	fmt.Println("Error sending request:", err)
-				//	return nil
-				//}
-				//defer resp.Body.Close()
-				//
-				//if resp.StatusCode == 200 {
-				//	fmt.Println("Stake was set")
-				//} else {
-				//	fmt.Println("Failed to set stake, status code:", resp.StatusCode)
-				//}
 			}
 
 			// View Last Block Function Implementation
@@ -273,24 +231,6 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
-
-				//var apiResponse ViewResponse
-				//if err := json.Unmarshal(body, &apiResponse); err != nil {
-				//	log.Fatal(err)
-				//}
-				//
-				//var lastBlock LastBlockData
-				//if err := json.Unmarshal([]byte(apiResponse.LastBlock), &lastBlock); err != nil {
-				//	log.Fatal(err)
-				//}
-				//
-				//prettyLastBlock, err := json.MarshalIndent(lastBlock, "", "  ")
-				//if err != nil {
-				//	log.Fatal(err)
-				//}
-				//
-				//fmt.Println("The Last Block is:")
-				//fmt.Println(string(prettyLastBlock))
 			}
 
 			// View Balance Function Implementation
