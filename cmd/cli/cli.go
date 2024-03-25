@@ -239,7 +239,6 @@ func main() {
 			// View Balance Function Implementation
 			// ====================================
 			if isBalanceSet {
-				fmt.Println("Inside!")
 				balanceUrl := apiUrl + "get_balance"
 
 				resp, err := http.Get(balanceUrl)

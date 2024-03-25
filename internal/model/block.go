@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -76,39 +77,55 @@ func (b *Block) String() string {
 }
 
 // AddTransaction adds a new transaction to the block if there's capacity
-func (b *Block) AddTransaction(transaction Transaction, capacity int) {
-	if len(b.Transactions) < capacity {
-		b.Transactions = append(b.Transactions, transaction)
+func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
+	var capacity = config.CAPACITY
+	var numberOfTransactions = len(b.Transactions)
+	var transactionFee = transaction.CalculateFee()
+	var isStakeTransaction = false
+	if transaction.ReceiverAddress.Equal(config.STAKE_PUBLIC_ADDRESS) {
+		isStakeTransaction = true
 	}
-	if len(b.Transactions) < capacity {
+	// TODO: refresh myNode.wallet & nodeInfo.balance
+	// TODO: add the transaction to the current block
+	if myNode.Wallet.PublicKey.Equal(transaction.ReceiverAddress) {
+		if transaction.TypeOfTransaction == true {
+			myNode.Wallet.Balance += transactionFee
+			log.Println("\t\tBlock Chat Coins Received!\n\t\t--------------------\nYou got transferred " + strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64) + " Block Chat Coins!")
+		} else {
+			log.Println("\t\tMessage Received!\n\t\t--------------------\n" + transaction.Data)
+		}
+	}
+
+	if myNode.Wallet.PublicKey.Equal(transaction.SenderAddress) {
+		myNode.Wallet.Balance -= transactionFee
+		if transaction.TypeOfTransaction == true {
+			log.Println("\t\tBlock Chat Coins Sent!\n\t\t--------------------\nYou sent " + strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64) + " Block Chat Coins!")
+		} else {
+			log.Println("\t\tMessage Sent!\n\t\t--------------------\n" + transaction.Data)
+		}
+	}
+
+	for _, nodeInfo := range myNode.Ring {
+		if nodeInfo.PublicKey.Equal(transaction.ReceiverAddress) && transaction.TypeOfTransaction == true {
+			nodeInfo.Balance += transactionFee
+		}
+		if nodeInfo.PublicKey.Equal(transaction.SenderAddress) {
+			nodeInfo.Balance -= transactionFee
+			if isStakeTransaction {
+				nodeInfo.Stake += transactionFee
+			}
+		}
+	}
+
+	// TODO: process if block is not full
+	if numberOfTransactions+1 < capacity {
+		numberOfTransactions++
 		return
 	}
 
-	log.Println("Block is full, cannot add transaction")
-
-	// TODO: start proof of stake process
-	// TODO: after proof of stake, get the new blockchain probably
-	//blockchain.getLastBlock()
-	// find the stakes of all the nodes in the block
-	// from all the transactions with receiver_addr == 0
-	var blockTransactions []Transaction = b.Transactions
-
-	for ind, transaction := range blockTransactions {
-		log.Println("transaction: ", ind, " : ", transaction)
-	}
-
-	// stake transactions are transactions with
-	// receiver_address equal to 0
-	var totalAmountStaked float64 = 0
-	for _, transaction := range blockTransactions {
-		if transaction.ReceiverAddress.N == config.STAKE_PUBLIC_ADDRESS.N {
-			var stakeAmount = transaction.CalculateFee()
-			totalAmountStaked += stakeAmount
-		}
-	}
-	// make the lottery
-	// return the stakes to all(?) nodes
-	// create new (empty)? block
-	// and make it the end of the blockchain
-	// TODO: create new block and add transaction there
+	// TODO : process if block is full
+	// TODO : elect new leader
+	// TODO : implement new endpoint for the leader to validate block
+	// TODO : implement new endpoint for other nodes to receive
+	// 		  & add the validated block onto their blockchain
 }

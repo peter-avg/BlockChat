@@ -72,7 +72,7 @@ func main() {
 			TransactionID:     "",
 			Signature:         nil,
 		}
-		GenesisBlock.AddTransaction(FirstTransaction, CAPACITY)
+		GenesisBlock.AddTransaction(FirstTransaction, &MyNode)
 		GenesisBlock.Hashify()
 		GenesisBlock.CurrentHash = "GENESIS_BLOCK"
 		// Insert the Genesis Block into the Blockchain

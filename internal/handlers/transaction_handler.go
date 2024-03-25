@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"block-chat/internal/config"
 	"block-chat/internal/model"
 	"block-chat/internal/utils"
 	"fmt"
@@ -11,7 +10,7 @@ import (
 	"strconv"
 )
 
-func ValidateTransaction(c *gin.Context, MyNode *model.Node) {
+func ValidateTransaction(c *gin.Context, myNode *model.Node) {
 	var request model.Transaction
 
 	if err := c.BindJSON(&request); err != nil {
@@ -20,7 +19,7 @@ func ValidateTransaction(c *gin.Context, MyNode *model.Node) {
 		return
 	}
 
-	sig_ok, err := MyNode.Wallet.VerifySignature(request.Data, request.Signature, request.SenderAddress)
+	sig_ok, err := myNode.Wallet.VerifySignature(request.Data, request.Signature, request.SenderAddress)
 
 	if err != nil {
 		log.Println("Error validated signature", err)
@@ -32,7 +31,7 @@ func ValidateTransaction(c *gin.Context, MyNode *model.Node) {
 		log.Println("Signature was validated")
 	}
 
-	for _, node := range MyNode.Ring {
+	for _, node := range myNode.Ring {
 		if node.PublicKey == request.SenderAddress {
 			senderBalance := node.Balance - node.Stake
 			if senderBalance < request.CalculateFee() {
@@ -59,12 +58,12 @@ func ValidateTransaction(c *gin.Context, MyNode *model.Node) {
 			ReceiverAddress:   request.ReceiverAddress,
 			TypeOfTransaction: typeOfData,
 			Data:              request.Data,
-			Nonce:             MyNode.Wallet.AddTransaction(),
+			Nonce:             myNode.Wallet.AddTransaction(),
 			TransactionID:     "",
 			Signature:         request.Signature,
 		}
 
-		MyNode.CurrentBlock.AddTransaction(receivedTransaction, config.CAPACITY)
+		myNode.CurrentBlock.AddTransaction(receivedTransaction, myNode)
 
 		// Send response
 		c.JSON(http.StatusOK, gin.H{
@@ -75,7 +74,7 @@ func ValidateTransaction(c *gin.Context, MyNode *model.Node) {
 
 // Send a transaction to another node
 // ===================================
-func SendTransaction(c *gin.Context, MyNode *model.Node) {
+func SendTransaction(c *gin.Context, myNode *model.Node) {
 	var request model.SendTransactionRequest
 
 	if err := c.BindJSON(&request); err != nil {
@@ -83,7 +82,7 @@ func SendTransaction(c *gin.Context, MyNode *model.Node) {
 		return
 	}
 	recipientId := request.Recipient
-	recipientPublicAddress := utils.FindPublicAddress(MyNode.Ring, recipientId)
+	recipientPublicAddress := utils.FindPublicAddress(myNode.Ring, recipientId)
 	if recipientPublicAddress == nil {
 		log.Println("Error : The given recipient id (=" + strconv.Itoa(recipientId) + ") does not correspond to any active node!")
 	}
@@ -97,10 +96,10 @@ func SendTransaction(c *gin.Context, MyNode *model.Node) {
 		recipientPublicAddress,
 		typeOfData,
 		request.Data,
-		MyNode.Wallet.AddTransaction(),
+		myNode.Wallet.AddTransaction(),
 	)
-	newTransaction.Signature, err = MyNode.Wallet.SignTransaction(newTransaction)
-	newTransaction.SenderAddress = MyNode.Wallet.PublicKey
+	newTransaction.Signature, err = myNode.Wallet.SignTransaction(newTransaction)
+	newTransaction.SenderAddress = myNode.Wallet.PublicKey
 	if err != nil {
 		log.Println("Error signing transaction", err)
 	}
@@ -108,17 +107,17 @@ func SendTransaction(c *gin.Context, MyNode *model.Node) {
 	log.Println("Sending transaction", newTransaction)
 
 	transactionFee := newTransaction.CalculateFee()
-	if transactionFee > MyNode.Wallet.Balance {
+	if transactionFee > myNode.Wallet.Balance {
 		log.Println("Insufficient funds to send transaction")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Insufficient funds to send transaction",
 		})
 		return
 	}
-
-	if MyNode.BroadcastTransaction(newTransaction) {
+	myNode.CurrentBlock.AddTransaction(*newTransaction, myNode)
+	if myNode.BroadcastTransaction(newTransaction) {
 		log.Println("Transaction broadcast successful.")
-		MyNode.CurrentBlock.AddTransaction(*newTransaction, config.CAPACITY)
+		//myNode.CurrentBlock.AddTransaction(*newTransaction, config.CAPACITY)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Transaction sent",
 		})
@@ -176,7 +175,7 @@ func SendTransaction(c *gin.Context, MyNode *model.Node) {
 
 // Receive Transaction
 // ===================
-func ReceiveTransaction(c *gin.Context, MyNode *model.Node) {
+func ReceiveTransaction(c *gin.Context, myNode *model.Node) {
 	var request model.Transaction
 
 	if err := c.BindJSON(&request); err != nil {
@@ -196,12 +195,12 @@ func ReceiveTransaction(c *gin.Context, MyNode *model.Node) {
 		ReceiverAddress:   request.ReceiverAddress,
 		TypeOfTransaction: typeOfData,
 		Data:              request.Data,
-		Nonce:             MyNode.Wallet.AddTransaction(),
+		Nonce:             myNode.Wallet.AddTransaction(),
 		TransactionID:     "",
 		Signature:         request.Signature,
 	}
 
-	MyNode.CurrentBlock.AddTransaction(receivedTransaction, config.CAPACITY)
+	myNode.CurrentBlock.AddTransaction(receivedTransaction, myNode)
 
 	// Send response
 	c.JSON(http.StatusOK, gin.H{
