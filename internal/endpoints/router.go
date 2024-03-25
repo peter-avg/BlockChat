@@ -29,6 +29,7 @@ func InitRouter(myNode *model.Node) *gin.Engine {
 	router.POST("/blockchat_api/receive_transaction", func(c *gin.Context) {
 		handlers.ReceiveTransaction(c, myNode)
 	})
+
 	// must make one for new block addition
 
 	// Client Endpoints of API

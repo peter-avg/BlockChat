@@ -2,6 +2,7 @@ package utils
 
 import (
 	"block-chat/internal/model"
+	"crypto/rsa"
 	"encoding/json"
 	"io"
 	"net"
@@ -58,4 +59,13 @@ func GetIP() (string, error) {
 	}
 
 	return " ", err
+}
+
+func FindPublicAddress(nodeInfoArray []model.NodeInfo, nodeId int) *rsa.PublicKey {
+	for _, nodeInfo := range nodeInfoArray {
+		if nodeInfo.Id == nodeId {
+			return nodeInfo.PublicKey
+		}
+	}
+	return nil
 }

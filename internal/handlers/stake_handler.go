@@ -22,7 +22,7 @@ func SetStake(c *gin.Context, MyNode *model.Node) {
 	}
 
 	var stakeAmount = request.Stake
-	var receiverAddress = -1
+	var receiverAddress = &config.STAKE_PUBLIC_ADDRESS
 
 	var stakeTransaction = model.NewTransaction(
 		receiverAddress,
@@ -50,7 +50,6 @@ func SetStake(c *gin.Context, MyNode *model.Node) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Stake Transaction of amount " + strconv.FormatFloat(stakeAmount, 'f', -1, 64) + " broadcasted",
 		})
-
 		return
 	}
 

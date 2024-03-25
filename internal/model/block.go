@@ -1,10 +1,12 @@
 package model
 
 import (
+	"block-chat/internal/config"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -69,7 +71,7 @@ func (b *Block) String() string {
 		transactionsString += fmt.Sprintf("\n\t\t Transaction %d : %s",
 			ind, transaction.String())
 	}
-	return fmt.Sprintf("Index: %d, Timestamp: %s,\n\tTransactions: %s, Validator: %d, CurrentHash: %s, PreviousHash: %s",
+	return fmt.Sprintf("Index: %d, Timestamp: %s,\n\tTransactions: %s,\n\tValidator: %d, CurrentHash: %s, PreviousHash: %s",
 		b.Index, timeString, transactionsString, b.Validator, b.CurrentHash, b.PreviousHash)
 }
 
@@ -77,10 +79,13 @@ func (b *Block) String() string {
 func (b *Block) AddTransaction(transaction Transaction, capacity int) {
 	if len(b.Transactions) < capacity {
 		b.Transactions = append(b.Transactions, transaction)
+	}
+	if len(b.Transactions) < capacity {
 		return
 	}
 
-	fmt.Println("Block is full, cannot add transaction")
+	log.Println("Block is full, cannot add transaction")
+
 	// TODO: start proof of stake process
 	// TODO: after proof of stake, get the new blockchain probably
 	//blockchain.getLastBlock()
@@ -89,14 +94,14 @@ func (b *Block) AddTransaction(transaction Transaction, capacity int) {
 	var blockTransactions []Transaction = b.Transactions
 
 	for ind, transaction := range blockTransactions {
-		fmt.Println("transaction: ", ind, " : ", transaction)
+		log.Println("transaction: ", ind, " : ", transaction)
 	}
 
 	// stake transactions are transactions with
 	// receiver_address equal to 0
 	var totalAmountStaked float64 = 0
 	for _, transaction := range blockTransactions {
-		if transaction.ReceiverAddress == -1 {
+		if transaction.ReceiverAddress.N == config.STAKE_PUBLIC_ADDRESS.N {
 			var stakeAmount = transaction.CalculateFee()
 			totalAmountStaked += stakeAmount
 		}

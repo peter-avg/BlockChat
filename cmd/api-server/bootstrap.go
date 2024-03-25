@@ -65,7 +65,7 @@ func main() {
 
 		var FirstTransaction = model.Transaction{
 			SenderAddress:     MyNode.Wallet.PublicKey,
-			ReceiverAddress:   0,
+			ReceiverAddress:   &config.STAKE_PUBLIC_ADDRESS,
 			TypeOfTransaction: true,
 			Data:              fmt.Sprint(1000 * nodes),
 			Nonce:             0,
@@ -74,7 +74,7 @@ func main() {
 		}
 		GenesisBlock.AddTransaction(FirstTransaction, CAPACITY)
 		GenesisBlock.Hashify()
-
+		GenesisBlock.CurrentHash = "GENESIS_BLOCK"
 		// Insert the Genesis Block into the Blockchain
 		MyNode.Chain.AddBlock(GenesisBlock)
 		//go cli.AppCLI()

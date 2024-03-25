@@ -10,6 +10,7 @@ import (
 // ==============================
 func GetLastBlock(c *gin.Context, MyNode *model.Node) {
 	var lastBlock = MyNode.Chain.GetLastBlock()
+	//var lastBlock = MyNode.CurrentBlock
 	var responseString = "Last Block :\n\t" + lastBlock.String()
 	c.String(http.StatusOK, responseString)
 }

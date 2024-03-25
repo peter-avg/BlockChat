@@ -1,6 +1,7 @@
 package model
 
 import (
+	"block-chat/internal/config"
 	// "fmt"
 	"errors"
 	"fmt"
@@ -55,8 +56,8 @@ func (ni *NodeInfo) String() string {
 		"\n\t\t\t\t\tIP: %s,"+
 		"\n\t\t\t\t\tPORT: %s,"+
 		"\n\t\t\t\t\tPublicKey: %v,"+
-		"\n\t\t\t\t\tBalance: %d,"+
-		"\n\t\t\t\t\tStake: %d",
+		"\n\t\t\t\t\tBalance: %.2f,"+
+		"\n\t\t\t\t\tStake: %.2f",
 		ni.Id, ni.IP, ni.PORT, "public_key?", ni.Balance, ni.Stake)
 }
 
@@ -169,7 +170,7 @@ func (n *Node) SendNewNode(info *NodeInfo, IP string, PORT string, ID int) bool 
 func (n *Node) BroadcastTransaction(transaction *Transaction) bool {
 	var wg sync.WaitGroup
 	errChV := make(chan error, len(n.Ring))
-	errChS := make(chan error, len(n.Ring))
+	//errChS := make(chan error, len(n.Ring))
 
 	for _, node := range n.Ring {
 		if node.Id != n.Id {
@@ -189,33 +190,33 @@ func (n *Node) BroadcastTransaction(transaction *Transaction) bool {
 		close(errChV)
 	}()
 
-	for err := range errChV {
-		log.Println(err)
-		return false
-	}
-
-	for _, node := range n.Ring {
-		if node.Id != n.Id {
-			wg.Add(1)
-
-			go func(node NodeInfo) {
-				defer wg.Done()
-				if !n.SendTransaction(transaction, node.IP, node.PORT, node.Id) {
-					errChS <- errors.New("Sending failed for Node " + strconv.Itoa(node.Id))
-				}
-			}(node)
-		}
-	}
-
-	go func() {
-		wg.Wait()
-		close(errChS)
-	}()
-
-	for err := range errChS {
-		log.Println(err)
-		return false
-	}
+	//for err := range errChV {
+	//	log.Println(err)
+	//	return false
+	//}
+	//
+	//for _, node := range n.Ring {
+	//	if node.Id != n.Id {
+	//		wg.Add(1)
+	//
+	//		go func(node NodeInfo) {
+	//			defer wg.Done()
+	//			if !n.SendTransaction(transaction, node.IP, node.PORT, node.Id) {
+	//				errChS <- errors.New("Sending failed for Node " + strconv.Itoa(node.Id))
+	//			}
+	//		}(node)
+	//	}
+	//}
+	//
+	//go func() {
+	//	wg.Wait()
+	//	close(errChS)
+	//}()
+	//
+	//for err := range errChS {
+	//	log.Println(err)
+	//	return false
+	//}
 
 	return true
 }
@@ -265,7 +266,7 @@ func (n *Node) SendTransaction(transaction *Transaction, IP string, PORT string,
 	}
 
 	if response.StatusCode == 200 {
-		if transaction.ReceiverAddress == -1 {
+		if transaction.ReceiverAddress.N == config.STAKE_PUBLIC_ADDRESS.N {
 			log.Println("Stake Transaction of amount "+strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64)+" sent to Node ", ID)
 		} else {
 			log.Println("Transaction of amount "+strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64)+" sent to Node ", ID)

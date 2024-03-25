@@ -42,7 +42,7 @@ var port = &cli.IntFlag{
 }
 var transaction = &cli.BoolFlag{
 	Name:  "t",
-	Usage: "-{t,-t} <recipient_address> <Message or Number of BlockChat Coins> : To produce a transaction",
+	Usage: "-{t,-t} <recipient_id> <Message or Number of BlockChat Coins> : To produce a transaction",
 }
 
 var stake = &cli.Float64Flag{
@@ -83,7 +83,6 @@ func main() {
 		},
 
 		Action: func(c *cli.Context) error {
-
 			if c.IsSet("help") || (c.NArg() == 0 && c.NumFlags() == 0) {
 				err := cli.ShowAppHelp(c)
 				if err != nil {
@@ -115,13 +114,17 @@ func main() {
 			if isTransactionSet {
 				log.Println("txn")
 				data := make(map[string]interface{})
-				recipientId := c.Args().Get(0)
+				recipientIdString := c.Args().Get(0)
+				recipientId, recipientIdConvertToIntError := strconv.Atoi(recipientIdString)
+				if recipientIdConvertToIntError != nil {
+					log.Println("Error : <recipient_id> must be of type int.\n" + recipientIdConvertToIntError.Error())
+				}
 				messageOrBCC := c.Args().Get(1)
-				log.Println("firstParam : " + recipientId)
+				log.Println("firstParam : " + recipientIdString)
 				log.Println("secondParam : " + messageOrBCC)
 
 				transactionUrl := apiUrl + "send_transaction"
-				if recipientId == "" {
+				if recipientIdString == "" {
 					fmt.Println("Usage: -{t,-t} <recipient_address> <Message or Number of BlockChat Coins> : To produce a transaction")
 					return nil
 				}
@@ -236,6 +239,7 @@ func main() {
 			// View Balance Function Implementation
 			// ====================================
 			if isBalanceSet {
+				fmt.Println("Inside!")
 				balanceUrl := apiUrl + "get_balance"
 
 				resp, err := http.Get(balanceUrl)

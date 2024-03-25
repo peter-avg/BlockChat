@@ -31,7 +31,6 @@ func RegisterNode(c *gin.Context, MyNode *model.Node) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not deduct money"})
 		return
 	}
-
 	// Add the new node to the Ring
 	NewNodeInfo := model.NewNodeInfo(MyNode.Nonce, request.IP, request.Port, &publicKey, 1000)
 	MyNode.AddNewInfo(NewNodeInfo)

@@ -24,7 +24,7 @@ type SetStakeRequest struct {
 }
 
 type SendTransactionRequest struct {
-	Recipient          string `json:"recipient_id"`
+	Recipient          int    `json:"recipient_id"`
 	Message_or_Bitcoin int    `json:"message_or_bitcoin"`
 	Data               string `json:"data"`
 }

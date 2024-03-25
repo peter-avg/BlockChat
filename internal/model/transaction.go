@@ -17,7 +17,7 @@ import (
 // Transaction represents a blockchain transaction
 type Transaction struct {
 	SenderAddress     *rsa.PublicKey `json:"sender_address"`
-	ReceiverAddress   int            `json:"receiver_address"`
+	ReceiverAddress   *rsa.PublicKey `json:"receiver_address"`
 	TypeOfTransaction bool           `json:"type_of_transaction"` // 0 for message, 1 for bcc
 	Data              string         `json:"data"`
 	Nonce             int            `json:"nonce"`
@@ -26,7 +26,7 @@ type Transaction struct {
 }
 
 // NewTransaction creates a new Transaction
-func NewTransaction(receiverAddress int, typeOfTransaction bool, data string, nonce int) *Transaction {
+func NewTransaction(receiverAddress *rsa.PublicKey, typeOfTransaction bool, data string, nonce int) *Transaction {
 	return &Transaction{
 		ReceiverAddress:   receiverAddress,
 		TypeOfTransaction: typeOfTransaction,
