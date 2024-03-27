@@ -35,7 +35,7 @@ func main() {
 	var nodes int
 	var bootstrap bool
 
-	fmt.Println("Hello i am a node")
+	log.Println("Hello i am a node")
 
 	flag.StringVar(&PORT, "p", "5000", "Port to run on")
 	flag.IntVar(&nodes, "n", 3, "Number of nodes in chain")
@@ -49,7 +49,7 @@ func main() {
 		MyNode.Id = 0
 		MyNode.GenerateWallet()
 		MyNodeInfo := model.NewNodeInfo(MyNode.Id, BOOTSTRAP_IP, BOOTSTRAP_PORT, MyNode.Wallet.PublicKey, float64(nodes*1000))
-		MyNode.Wallet.Balance = float64(nodes * 1000)
+		//MyNode.Wallet.Balance = float64(nodes * 1000)
 		MyNode.AddNewInfo(MyNodeInfo)
 		log.Println(MyNode.Ring)
 
@@ -64,8 +64,8 @@ func main() {
 		}
 
 		var FirstTransaction = model.Transaction{
-			SenderAddress:     MyNode.Wallet.PublicKey,
-			ReceiverAddress:   &config.STAKE_PUBLIC_ADDRESS,
+			SenderAddress:     &config.STAKE_PUBLIC_ADDRESS,
+			ReceiverAddress:   MyNode.Wallet.PublicKey,
 			TypeOfTransaction: true,
 			Data:              fmt.Sprint(1000 * nodes),
 			Nonce:             0,
@@ -95,14 +95,15 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		MyNode.Chain, MyNode.Ring, MyNode.Wallet.Balance, err = utils.DeserializeRegisterNodeResponse(response)
+		if response.StatusCode == http.StatusBadRequest {
+			log.Println(utils.GetErrorMessageFromResponse(response))
+			return
+		}
+		MyNode.Id, MyNode.Chain, MyNode.Ring, MyNode.Wallet.Balance, err = utils.DeserializeRegisterNodeResponse(response)
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		log.Println("MyNode : ", MyNode.String())
 		router.Run(BOOTSTRAP_IP + ":" + PORT)
-
 	}
 }

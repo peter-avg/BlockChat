@@ -47,6 +47,7 @@ func NewNodeInfo(id int, ip string, port string,
 		PORT:      port,
 		PublicKey: PublicKey,
 		Balance:   balance,
+		Stake:     0,
 	}
 }
 

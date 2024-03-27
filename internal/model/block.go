@@ -6,7 +6,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"log"
+	"math"
+	"math/rand"
 	"strconv"
 	"time"
 )
@@ -81,27 +84,29 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 	var capacity = config.CAPACITY
 	var numberOfTransactions = len(b.Transactions)
 	var transactionFee = transaction.CalculateFee()
+	log.Println("Transaction Fee : " + strconv.FormatFloat(transactionFee, 'f', -1, 64))
 	var isStakeTransaction = false
 	if transaction.ReceiverAddress.Equal(config.STAKE_PUBLIC_ADDRESS) {
 		isStakeTransaction = true
 	}
 	// TODO: refresh myNode.wallet & nodeInfo.balance
 	// TODO: add the transaction to the current block
+
 	if myNode.Wallet.PublicKey.Equal(transaction.ReceiverAddress) {
 		if transaction.TypeOfTransaction == true {
 			myNode.Wallet.Balance += transactionFee
-			log.Println("\t\tBlock Chat Coins Received!\n\t\t--------------------\nYou got transferred " + strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64) + " Block Chat Coins!")
+			log.Println("\t\tBlock Chat Coins Received!\n\t\t--------------------\n\t\tYou got transferred " + strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64) + " Block Chat Coins!")
 		} else {
-			log.Println("\t\tMessage Received!\n\t\t--------------------\n" + transaction.Data)
+			log.Println("\t\t\t\tMessage Received!\n\t\t--------------------\n" + transaction.Data)
 		}
 	}
 
 	if myNode.Wallet.PublicKey.Equal(transaction.SenderAddress) {
 		myNode.Wallet.Balance -= transactionFee
 		if transaction.TypeOfTransaction == true {
-			log.Println("\t\tBlock Chat Coins Sent!\n\t\t--------------------\nYou sent " + strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64) + " Block Chat Coins!")
+			log.Println("\t\tBlock Chat Coins Sent!\n\t\t--------------------\n\t\tYou sent " + strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64) + " Block Chat Coins!")
 		} else {
-			log.Println("\t\tMessage Sent!\n\t\t--------------------\n" + transaction.Data)
+			log.Println("\t\tMessage Sent!\n\t\t--------------------\n\t\tMessage : " + transaction.Data)
 		}
 	}
 
@@ -119,12 +124,36 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 
 	// TODO: process if block is not full
 	if numberOfTransactions+1 < capacity {
-		numberOfTransactions++
+		b.Transactions = append(b.Transactions, transaction)
 		return
 	}
 
 	// TODO : process if block is full
+	// TODO : maybe define mintBlock()
 	// TODO : elect new leader
+	var totalStakeAmount float64 = 0
+	for _, nodeInfo := range myNode.Ring {
+		totalStakeAmount += nodeInfo.Stake
+	}
+	log.Printf("Total Stake Amount : %f\n", totalStakeAmount)
+	var seedString = myNode.Chain.GetLastBlock().CurrentHash
+	hash := fnv.New64()
+	hash.Write([]byte(seedString))
+	seed := int64(hash.Sum64())
+	rand.Seed(seed)
+	randomNumber := rand.Intn(int(math.Round(totalStakeAmount))) + 1
+	log.Printf("Total Stake Amount : %d\n", randomNumber)
+	var currSum float64 = 0
+	var leaderNodeInfo NodeInfo
+	for _, nodeInfo := range myNode.Ring {
+		currSum += nodeInfo.Stake
+		if int(math.Round(currSum)) >= randomNumber {
+			leaderNodeInfo = nodeInfo
+			break
+		}
+	}
+	log.Printf("Leader Node Id : %d\n", leaderNodeInfo.Id)
+
 	// TODO : implement new endpoint for the leader to validate block
 	// TODO : implement new endpoint for other nodes to receive
 	// 		  & add the validated block onto their blockchain

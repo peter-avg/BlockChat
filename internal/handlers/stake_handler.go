@@ -46,7 +46,7 @@ func SetStake(c *gin.Context, MyNode *model.Node) {
 
 	if MyNode.BroadcastTransaction(stakeTransaction) {
 		log.Println("Stake Transaction broadcasted")
-		MyNode.CurrentBlock.AddTransaction(*stakeTransaction, config.CAPACITY)
+		MyNode.CurrentBlock.AddTransaction(*stakeTransaction, MyNode)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Stake Transaction of amount " + strconv.FormatFloat(stakeAmount, 'f', -1, 64) + " broadcasted",
 		})
