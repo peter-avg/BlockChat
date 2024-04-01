@@ -17,7 +17,6 @@ import (
 // ============================================================
 func DeserializeRegisterNodeResponse(response *http.Response) (int, model.Blockchain, []model.NodeInfo, float64, error) {
 	body, err := io.ReadAll(response.Body)
-	log.Println("HEREEE")
 	log.Println(response.Body)
 	if err != nil {
 		return -1, model.Blockchain{}, []model.NodeInfo{}, 0, err
@@ -38,7 +37,7 @@ func DeserializeRegisterNodeResponse(response *http.Response) (int, model.Blockc
 	if err := json.Unmarshal([]byte(response_data.Ring), &ring); err != nil {
 		return response_data.Id, model.Blockchain{}, []model.NodeInfo{}, 0, err
 	}
-
+	log.Println("response_data.id : " + strconv.Itoa(response_data.Id))
 	return response_data.Id, blockchain, ring, response_data.Balance, nil
 
 }

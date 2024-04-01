@@ -171,7 +171,6 @@ func (n *Node) SendNewNode(info *NodeInfo, IP string, PORT string, ID int) bool 
 func (n *Node) BroadcastTransaction(transaction *Transaction) bool {
 	var wg sync.WaitGroup
 	errChV := make(chan error, len(n.Ring))
-	//errChS := make(chan error, len(n.Ring))
 
 	for _, node := range n.Ring {
 		if node.Id != n.Id {
@@ -191,33 +190,10 @@ func (n *Node) BroadcastTransaction(transaction *Transaction) bool {
 		close(errChV)
 	}()
 
-	//for err := range errChV {
-	//	log.Println(err)
-	//	return false
-	//}
-	//
-	//for _, node := range n.Ring {
-	//	if node.Id != n.Id {
-	//		wg.Add(1)
-	//
-	//		go func(node NodeInfo) {
-	//			defer wg.Done()
-	//			if !n.SendTransaction(transaction, node.IP, node.PORT, node.Id) {
-	//				errChS <- errors.New("Sending failed for Node " + strconv.Itoa(node.Id))
-	//			}
-	//		}(node)
-	//	}
-	//}
-	//
-	//go func() {
-	//	wg.Wait()
-	//	close(errChS)
-	//}()
-	//
-	//for err := range errChS {
-	//	log.Println(err)
-	//	return false
-	//}
+	for err := range errChV {
+		log.Println(err)
+		return false
+	}
 
 	return true
 }

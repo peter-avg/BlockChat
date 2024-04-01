@@ -36,7 +36,7 @@ func RegisterNode(c *gin.Context, myNode *model.Node) {
 		return
 	}
 	// Add the new node to the Ring
-	NewNodeInfo := model.NewNodeInfo(myNode.Nonce, request.IP, request.Port, &publicKey, 0)
+	NewNodeInfo := model.NewNodeInfo(myNode.Nonce+1, request.IP, request.Port, &publicKey, 0)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -64,12 +64,12 @@ func RegisterNode(c *gin.Context, myNode *model.Node) {
 			return
 		}
 	}()
+
 	myNode.AddNewInfo(NewNodeInfo)
 	myNode.CurrentBlock.AddTransaction(*newTransaction, myNode)
 
 	// Serialize data for response
 	jsonDataID := myNode.Nonce
-	// TODO : nonce gets incremented two times!
 	log.Println("jsonDataId : " + strconv.Itoa(jsonDataID))
 	jsonBlockchain, err := json.Marshal(myNode.Chain)
 	if err != nil {
@@ -79,6 +79,8 @@ func RegisterNode(c *gin.Context, myNode *model.Node) {
 	if err != nil {
 		log.Println(err)
 	}
+
+	//log.Println("myNode : ", myNode.String())
 
 	// Send response
 	c.JSON(http.StatusOK, gin.H{

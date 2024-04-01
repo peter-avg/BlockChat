@@ -48,8 +48,9 @@ func main() {
 		// Setup the Bootstrap node
 		MyNode.Id = 0
 		MyNode.GenerateWallet()
-		MyNodeInfo := model.NewNodeInfo(MyNode.Id, BOOTSTRAP_IP, BOOTSTRAP_PORT, MyNode.Wallet.PublicKey, float64(nodes*1000))
+		MyNodeInfo := model.NewNodeInfo(MyNode.Id, BOOTSTRAP_IP, BOOTSTRAP_PORT, MyNode.Wallet.PublicKey, 0)
 		//MyNode.Wallet.Balance = float64(nodes * 1000)
+		MyNode.Nonce = -1
 		MyNode.AddNewInfo(MyNodeInfo)
 		log.Println(MyNode.Ring)
 
@@ -77,7 +78,6 @@ func main() {
 		GenesisBlock.CurrentHash = "GENESIS_BLOCK"
 		// Insert the Genesis Block into the Blockchain
 		MyNode.Chain.AddBlock(GenesisBlock)
-		//go cli.AppCLI()
 		router.Run(BOOTSTRAP_IP + ":" + BOOTSTRAP_PORT)
 
 	} else {
@@ -103,6 +103,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		//MyNode.Add1000BCCToBalance()
 		log.Println("MyNode : ", MyNode.String())
 		router.Run(BOOTSTRAP_IP + ":" + PORT)
 	}

@@ -30,7 +30,6 @@ func ValidateTransaction(c *gin.Context, myNode *model.Node) {
 	if sig_ok {
 		log.Println("Signature was validated")
 	}
-
 	for _, node := range myNode.Ring {
 		if node.PublicKey == request.SenderAddress {
 			senderBalance := node.Balance - node.Stake
@@ -42,34 +41,33 @@ func ValidateTransaction(c *gin.Context, myNode *model.Node) {
 				return
 			}
 		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Transaction validated",
-		})
-
-		typeOfData, err := strconv.ParseBool(fmt.Sprint(request.TypeOfTransaction))
-
-		if err != nil {
-			log.Println(err)
-		}
-
-		receivedTransaction := model.Transaction{
-			SenderAddress:     request.SenderAddress,
-			ReceiverAddress:   request.ReceiverAddress,
-			TypeOfTransaction: typeOfData,
-			Data:              request.Data,
-			Nonce:             myNode.Wallet.AddTransaction(),
-			TransactionID:     "",
-			Signature:         request.Signature,
-		}
-
-		myNode.CurrentBlock.AddTransaction(receivedTransaction, myNode)
-
-		// Send response
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Transaction received",
-		})
 	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Transaction validated",
+	})
+
+	typeOfData, err := strconv.ParseBool(fmt.Sprint(request.TypeOfTransaction))
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	receivedTransaction := model.Transaction{
+		SenderAddress:     request.SenderAddress,
+		ReceiverAddress:   request.ReceiverAddress,
+		TypeOfTransaction: typeOfData,
+		Data:              request.Data,
+		Nonce:             myNode.Wallet.AddTransaction(),
+		TransactionID:     "",
+		Signature:         request.Signature,
+	}
+	log.Println("Add Transaction 1")
+	myNode.CurrentBlock.AddTransaction(receivedTransaction, myNode)
+	log.Println("After Add Transaction 1")
+	// Send response
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Transaction received",
+	})
 }
 
 // Send a transaction to another node

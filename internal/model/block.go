@@ -110,14 +110,14 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 		}
 	}
 
-	for _, nodeInfo := range myNode.Ring {
+	for i, nodeInfo := range myNode.Ring {
 		if nodeInfo.PublicKey.Equal(transaction.ReceiverAddress) && transaction.TypeOfTransaction == true {
-			nodeInfo.Balance += transactionFee
+			myNode.Ring[i].Balance += transactionFee
 		}
 		if nodeInfo.PublicKey.Equal(transaction.SenderAddress) {
-			nodeInfo.Balance -= transactionFee
+			myNode.Ring[i].Balance -= transactionFee
 			if isStakeTransaction {
-				nodeInfo.Stake += transactionFee
+				myNode.Ring[i].Stake += transactionFee
 			}
 		}
 	}
@@ -141,7 +141,9 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 	hash.Write([]byte(seedString))
 	seed := int64(hash.Sum64())
 	rand.Seed(seed)
-	randomNumber := rand.Intn(int(math.Round(totalStakeAmount))) + 1
+	roundedNumberInt := int(math.Round(totalStakeAmount))
+	log.Printf("int(math.Round(totalStakeAmount)) = %d\n", roundedNumberInt)
+	randomNumber := rand.Intn(roundedNumberInt + 1)
 	log.Printf("Total Stake Amount : %d\n", randomNumber)
 	var currSum float64 = 0
 	var leaderNodeInfo NodeInfo
