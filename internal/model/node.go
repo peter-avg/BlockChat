@@ -18,12 +18,14 @@ import (
 // NodeInfo struct contains communication info about other nodes
 // ============================================================
 type NodeInfo struct {
-	Id        int            `json:"id"`
-	IP        string         `json:"IP"`
-	PORT      string         `json:"PORT"`
-	PublicKey *rsa.PublicKey `json:"PublicKey"`
-	Balance   float64        `json:"Balance"`
-	Stake     float64        `json:"stake"`
+	Id          int            `json:"id"`
+	IP          string         `json:"IP"`
+	PORT        string         `json:"PORT"`
+	PublicKey   *rsa.PublicKey `json:"PublicKey"`
+	Balance     float64        `json:"Balance"`
+	SoftBalance float64        `json:"SoftBalance"`
+	Stake       float64        `json:"stake"`
+	SoftStake   float64        `json:"SoftStake"`
 }
 
 // Node struct contains Blockchain info
@@ -42,12 +44,13 @@ type Node struct {
 func NewNodeInfo(id int, ip string, port string,
 	PublicKey *rsa.PublicKey, balance float64) *NodeInfo {
 	return &NodeInfo{
-		Id:        id,
-		IP:        ip,
-		PORT:      port,
-		PublicKey: PublicKey,
-		Balance:   balance,
-		Stake:     0,
+		Id:          id,
+		IP:          ip,
+		PORT:        port,
+		PublicKey:   PublicKey,
+		Balance:     balance,
+		SoftBalance: 0,
+		Stake:       0,
 	}
 }
 
@@ -58,8 +61,12 @@ func (ni *NodeInfo) String() string {
 		"\n\t\t\t\t\tPORT: %s,"+
 		"\n\t\t\t\t\tPublicKey: %v,"+
 		"\n\t\t\t\t\tBalance: %.2f,"+
-		"\n\t\t\t\t\tStake: %.2f",
-		ni.Id, ni.IP, ni.PORT, "public_key?", ni.Balance, ni.Stake)
+		"\n\t\t\t\t\tSoftBalance: %.2f,"+
+		"\n\t\t\t\t\tStake: %.2f"+
+		"\n\t\t\t\t\tSoftStake: %.2f",
+		ni.Id, ni.IP, ni.PORT, "public_key?",
+		ni.Balance, ni.SoftBalance, ni.Stake,
+		ni.SoftStake)
 }
 
 func (n *Node) String() string {
@@ -74,7 +81,7 @@ func (n *Node) String() string {
 		"\n\t\t\t\tWallet: %v,"+
 		"\n\t\t\t\t%s,"+
 		"\n\t\t\t\t%s,"+
-		"CurrentBlock: %v",
+		"\n\t\t\t\tCurrentBlock: %v",
 		n.Id, n.Nonce, n.Wallet, n.Chain.String(), ringString, n.CurrentBlock)
 }
 
@@ -169,11 +176,13 @@ func (n *Node) SendNewNode(info *NodeInfo, IP string, PORT string, ID int) bool 
 // Broadcast transaction to all nodes
 // =================================
 func (n *Node) BroadcastTransaction(transaction *Transaction) bool {
+	log.Println("Broadcasting transaction...")
 	var wg sync.WaitGroup
 	errChV := make(chan error, len(n.Ring))
 
 	for _, node := range n.Ring {
 		if node.Id != n.Id {
+			log.Println("Sending transaction to node " + strconv.Itoa(node.Id))
 			wg.Add(1)
 
 			go func(node NodeInfo) {
@@ -217,7 +226,7 @@ func (n *Node) ValidateTransaction(transaction *Transaction, IP string, PORT str
 	}
 
 	if response.StatusCode == 200 {
-		log.Println("Transaction validated by Node ", ID)
+		log.Println("Transaction sent to Node ", ID)
 		return true
 	}
 
@@ -252,4 +261,68 @@ func (n *Node) SendTransaction(transaction *Transaction, IP string, PORT string,
 	}
 	log.Println("Transaction failed to send to Node ", ID)
 	return false
+}
+
+// Broadcast validated block to all nodes
+// =================================
+func (n *Node) BroadcastValidatedBlock(block Block) bool {
+	var wg sync.WaitGroup
+	errChV := make(chan error, len(n.Ring))
+
+	for _, node := range n.Ring {
+		if node.Id != n.Id {
+			wg.Add(1)
+
+			go func(node NodeInfo) {
+				defer wg.Done()
+				if !n.ValidateBlock(block, node.IP, node.PORT, node.Id) {
+					errChV <- errors.New("Sending failed for validated block for node : " + strconv.Itoa(node.Id))
+				}
+			}(node)
+		}
+	}
+
+	go func() {
+		wg.Wait()
+		close(errChV)
+	}()
+
+	for err := range errChV {
+		log.Println(err)
+		return false
+	}
+
+	return true
+}
+
+// Send validated block to a node
+// =================================
+func (n *Node) ValidateBlock(block Block, IP string, PORT string, ID int) bool {
+	sendAddress := "http://" + IP + ":" + PORT + "/blockchat_api/receive_validated_block"
+
+	requestBody, err := json.Marshal(block)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	response, err := http.Post(sendAddress, "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	if response.StatusCode == 200 {
+		log.Println("Validated Block sent to Node ", ID)
+		return true
+	}
+	log.Println("Validated Block failed to send to Node ", ID)
+	return false
+}
+
+func (n *Node) SoftStateEqualToHardState() {
+	for i := range n.Ring {
+		n.Ring[i].SoftBalance = n.Ring[i].Balance
+		n.Ring[i].SoftStake = n.Ring[i].Stake
+	}
 }

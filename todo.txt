@@ -1,0 +1,47 @@
+Proof-Of-Stake Implementation :
+    1. Differentiate Hard-State and Soft-State
+       -> Hard-State is the state that is inferred from the
+        last validated block
+       -> Soft-State is Hard-State + the transactions of the
+        last (unvalidated-incomplete) block
+       -> Can be implemented adding another []NodeInfo array
+        in the node type definition. This array would be
+        called SoftRing (in contrast to the Ring for the hard
+        state).
+        Or add another field called SoftBalance to each NodeInfo object
+        and SoftStake ??
+       -> The code refactoring necessary is changing the
+        []NodeInfo array being modified in Block.AddTransaction()
+        to be the SoftBalance while only modifying in MintBlock()
+       -> Investigate the bootstrap process in SoftBalance()
+
+    Decision :
+        Add a new field to each NodeInfo object called 'SoftBalance'
+        and 'SoftStake' which is storing the soft-state balance & stake balance
+        of each node.
+        The Node.Wallet.Balance, NodeInfo.Balance && NodeInfo.Stake store the
+        hard-state balance & stake balance.
+
+    IMPLEMENTED
+
+    2. Implementing MintBlock() - the method called only from the
+       elected/leader node e.g. myNode.id == electedNodeId
+       This function will broadcast the new block
+       e.g. call the api function ReceiveValidatedBlock()
+            for every other node in the Ring.
+
+    NEEDS SMALL IMPLEMENTATION && TESTING
+
+    3. Implementing ReceiveValidatedBlock() - this will be the only
+       function that will modify the Ring []NodeInfo array
+       then check that the Ring is equal to SoftRing
+
+    NEEDS SMALL IMPLEMENTATION && TESTING
+
+    4. When to release stakes ? - Release stakes when a stake
+       txn with amount 0 is called.
+       Add code in addTransaction() etc. to handle that.
+
+    5. Implement the txn fee mechanism - refactor various blocks
+       of code - Give the elected leader their gathered fees
+       in the MintBlock() function (?)

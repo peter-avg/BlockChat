@@ -77,7 +77,8 @@ func main() {
 		GenesisBlock.Hashify()
 		GenesisBlock.CurrentHash = "GENESIS_BLOCK"
 		// Insert the Genesis Block into the Blockchain
-		MyNode.Chain.AddBlock(GenesisBlock)
+		MyNode.Chain.AddBlock(GenesisBlock, &MyNode)
+		log.Println("Last Block : " + MyNode.Chain.GetLastBlock().String())
 		router.Run(BOOTSTRAP_IP + ":" + BOOTSTRAP_PORT)
 
 	} else {
@@ -96,14 +97,15 @@ func main() {
 			log.Fatal(err)
 		}
 		if response.StatusCode == http.StatusBadRequest {
+			log.Println("Line 100")
 			log.Println(utils.GetErrorMessageFromResponse(response))
 			return
 		}
-		MyNode.Id, MyNode.Chain, MyNode.Ring, MyNode.Wallet.Balance, err = utils.DeserializeRegisterNodeResponse(response)
+		MyNode.Id, MyNode.Chain, MyNode.Ring, MyNode.Wallet.Balance, MyNode.CurrentBlock, err = utils.DeserializeRegisterNodeResponse(response)
 		if err != nil {
+			log.Println("Line 105")
 			log.Fatal(err)
 		}
-		//MyNode.Add1000BCCToBalance()
 		log.Println("MyNode : ", MyNode.String())
 		router.Run(BOOTSTRAP_IP + ":" + PORT)
 	}

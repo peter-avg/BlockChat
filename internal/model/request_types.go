@@ -13,10 +13,11 @@ type RegisterNodeRequest struct {
 }
 
 type RegisterNodeResponse struct {
-	Id         int     `json:"id"`
-	Blockchain string  `json:"blockchain"`
-	Ring       string  `json:"ring"`
-	Balance    float64 `json:"balance"`
+	Id           int     `json:"id"`
+	Blockchain   string  `json:"blockchain"`
+	Ring         string  `json:"ring"`
+	Balance      float64 `json:"balance"`
+	CurrentBlock string  `json:"current_block"`
 }
 
 type SetStakeRequest struct {

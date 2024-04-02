@@ -11,7 +11,7 @@ import (
 
 // Broadcast a stake transaction
 // ===================================
-func SetStake(c *gin.Context, MyNode *model.Node) {
+func SetStake(c *gin.Context, myNode *model.Node) {
 	// Stake is a Transaction with a Recipient Address == -1
 	var request model.SetStakeRequest
 
@@ -28,25 +28,31 @@ func SetStake(c *gin.Context, MyNode *model.Node) {
 		receiverAddress,
 		true,
 		strconv.FormatFloat(stakeAmount, 'f', -1, 64),
-		MyNode.Wallet.AddTransaction(),
+		myNode.Wallet.AddTransaction(),
 	)
 
 	var err error
-	stakeTransaction.Signature, err = MyNode.Wallet.SignTransaction(stakeTransaction)
-	stakeTransaction.SenderAddress = MyNode.Wallet.PublicKey
+	stakeTransaction.Signature, err = myNode.Wallet.SignTransaction(stakeTransaction)
+	stakeTransaction.SenderAddress = myNode.Wallet.PublicKey
 	if err != nil {
 		log.Println("Error signing stake transaction", err)
 	}
 
-	if MyNode.Wallet.DeductMoney(stakeAmount) == false {
-		log.Println("Could not set stake, insufficient funds")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not set stake, insufficient funds"})
-		return
+	for _, node := range myNode.Ring {
+		if node.Id == myNode.Id {
+			senderBalance := node.SoftBalance - node.SoftStake
+			if senderBalance < stakeAmount {
+				log.Println("Could not set stake, insufficient funds")
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": "Could not set stake, insufficient funds",
+				})
+				return
+			}
+		}
 	}
-
-	if MyNode.BroadcastTransaction(stakeTransaction) {
+	if myNode.BroadcastTransaction(stakeTransaction) {
 		log.Println("Stake Transaction broadcasted")
-		MyNode.CurrentBlock.AddTransaction(*stakeTransaction, MyNode)
+		myNode.CurrentBlock.AddTransaction(*stakeTransaction, myNode)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Stake Transaction of amount " + strconv.FormatFloat(stakeAmount, 'f', -1, 64) + " broadcasted",
 		})

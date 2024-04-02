@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"block-chat/internal/model"
-	"block-chat/internal/utils"
 	"crypto/rsa"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
@@ -29,7 +28,6 @@ func RegisterNode(c *gin.Context, myNode *model.Node) {
 		N: request.Modulus,
 		E: request.Exponent,
 	}
-	log.Println("myNode.Wallet = " + utils.Float64ToString(myNode.Wallet.Balance))
 	if myNode.Wallet.Balance < 1000 {
 		log.Println("Not enough money for the initial transaction")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not deduct money"})
@@ -37,7 +35,7 @@ func RegisterNode(c *gin.Context, myNode *model.Node) {
 	}
 	// Add the new node to the Ring
 	NewNodeInfo := model.NewNodeInfo(myNode.Nonce+1, request.IP, request.Port, &publicKey, 0)
-	wg.Add(1)
+	wg.Add(2)
 	go func() {
 		defer wg.Done()
 		myNode.BroadcastNewNode(NewNodeInfo)
@@ -51,19 +49,19 @@ func RegisterNode(c *gin.Context, myNode *model.Node) {
 	var err error
 	newTransaction.Signature, err = myNode.Wallet.SignTransaction(newTransaction)
 	newTransaction.SenderAddress = myNode.Wallet.PublicKey
-	wg.Add(1)
+	log.Println("______ BEFORE BROADCAST ________")
+
 	go func() {
+		log.Println("______ INSIDE BROADCAST 1 ________")
 		defer wg.Done()
-		wg.Wait()
+		log.Println("______ INSIDE BROADCAST 2 ________")
 		if myNode.BroadcastTransaction(newTransaction) {
 			log.Println("Initial Transaction broadcast successful.")
 			//myNode.CurrentBlock.AddTransaction(*newTransaction, config.CAPACITY)
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Transaction sent",
-			})
-			return
 		}
 	}()
+	log.Println("______ AFTER BROADCAST ________")
+	wg.Wait()
 
 	myNode.AddNewInfo(NewNodeInfo)
 	myNode.CurrentBlock.AddTransaction(*newTransaction, myNode)
@@ -79,15 +77,18 @@ func RegisterNode(c *gin.Context, myNode *model.Node) {
 	if err != nil {
 		log.Println(err)
 	}
-
-	//log.Println("myNode : ", myNode.String())
+	jsonCurrentBlock, err := json.Marshal(myNode.CurrentBlock)
+	if err != nil {
+		log.Println(err)
+	}
 
 	// Send response
 	c.JSON(http.StatusOK, gin.H{
-		"id":         jsonDataID,
-		"blockchain": string(jsonBlockchain),
-		"ring":       string(jsonRing),
-		"balance":    1000,
+		"id":            jsonDataID,
+		"blockchain":    string(jsonBlockchain),
+		"ring":          string(jsonRing),
+		"balance":       0,
+		"current_block": string(jsonCurrentBlock),
 	})
 
 }

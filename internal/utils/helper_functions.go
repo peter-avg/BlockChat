@@ -15,31 +15,42 @@ import (
 
 // Receive a RegisterNodeResponse and convert to Ring and Chain
 // ============================================================
-func DeserializeRegisterNodeResponse(response *http.Response) (int, model.Blockchain, []model.NodeInfo, float64, error) {
+func DeserializeRegisterNodeResponse(response *http.Response) (int, model.Blockchain, []model.NodeInfo, float64, model.Block, error) {
 	body, err := io.ReadAll(response.Body)
-	log.Println(response.Body)
+	log.Println(string(body))
 	if err != nil {
-		return -1, model.Blockchain{}, []model.NodeInfo{}, 0, err
+		return -1, model.Blockchain{}, []model.NodeInfo{}, 0, model.Block{}, err
 	}
 
 	var response_data model.RegisterNodeResponse
 	if err := json.Unmarshal(body, &response_data); err != nil {
-		return -1, model.Blockchain{}, []model.NodeInfo{}, 0, err
+		log.Println("Line 27")
+
+		return -1, model.Blockchain{}, []model.NodeInfo{}, 0, model.Block{}, err
 	}
 
 	var blockchain model.Blockchain
-
 	if err := json.Unmarshal([]byte(response_data.Blockchain), &blockchain); err != nil {
-		return response_data.Id, model.Blockchain{}, []model.NodeInfo{}, 0, err
+		log.Println("Line 32")
+
+		return response_data.Id, model.Blockchain{}, []model.NodeInfo{}, 0, model.Block{}, err
 	}
 
 	var ring []model.NodeInfo
 	if err := json.Unmarshal([]byte(response_data.Ring), &ring); err != nil {
-		return response_data.Id, model.Blockchain{}, []model.NodeInfo{}, 0, err
-	}
-	log.Println("response_data.id : " + strconv.Itoa(response_data.Id))
-	return response_data.Id, blockchain, ring, response_data.Balance, nil
+		log.Println("Line 37")
 
+		return response_data.Id, blockchain, []model.NodeInfo{}, 0, model.Block{}, err
+	}
+
+	var currentBlock model.Block
+	if err := json.Unmarshal([]byte(response_data.CurrentBlock), &currentBlock); err != nil {
+		log.Println("Line 42")
+		return response_data.Id, model.Blockchain{}, ring, 0, model.Block{}, err
+	}
+
+	log.Println("response_data.id : " + strconv.Itoa(response_data.Id))
+	return response_data.Id, blockchain, ring, response_data.Balance, currentBlock, nil
 }
 
 func GetErrorMessageFromResponse(response *http.Response) string {

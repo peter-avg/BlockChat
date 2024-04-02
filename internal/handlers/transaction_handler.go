@@ -32,7 +32,7 @@ func ValidateTransaction(c *gin.Context, myNode *model.Node) {
 	}
 	for _, node := range myNode.Ring {
 		if node.PublicKey == request.SenderAddress {
-			senderBalance := node.Balance - node.Stake
+			senderBalance := node.SoftBalance - node.SoftStake
 			if senderBalance < request.CalculateFee() {
 				log.Println("Insufficient funds to send transaction")
 				c.JSON(http.StatusBadRequest, gin.H{
@@ -61,9 +61,7 @@ func ValidateTransaction(c *gin.Context, myNode *model.Node) {
 		TransactionID:     "",
 		Signature:         request.Signature,
 	}
-	log.Println("Add Transaction 1")
 	myNode.CurrentBlock.AddTransaction(receivedTransaction, myNode)
-	log.Println("After Add Transaction 1")
 	// Send response
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Transaction received",
@@ -105,17 +103,21 @@ func SendTransaction(c *gin.Context, myNode *model.Node) {
 	log.Println("Sending transaction", newTransaction)
 
 	transactionFee := newTransaction.CalculateFee()
-	if transactionFee > myNode.Wallet.Balance {
-		log.Println("Insufficient funds to send transaction")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Insufficient funds to send transaction",
-		})
-		return
+	for _, node := range myNode.Ring {
+		if node.Id == myNode.Id {
+			senderBalance := node.SoftBalance - node.Stake
+			if senderBalance < transactionFee {
+				log.Println("Insufficient funds to send transaction")
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": "Insufficient funds to send transaction",
+				})
+				return
+			}
+		}
 	}
 	myNode.CurrentBlock.AddTransaction(*newTransaction, myNode)
 	if myNode.BroadcastTransaction(newTransaction) {
 		log.Println("Transaction broadcast successful.")
-		//myNode.CurrentBlock.AddTransaction(*newTransaction, config.CAPACITY)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Transaction sent",
 		})
@@ -127,49 +129,6 @@ func SendTransaction(c *gin.Context, myNode *model.Node) {
 	})
 
 }
-
-//// Verify Transaction
-//// ==================
-//func ValidateTransaction(c *gin.Context, MyNode *model.Node) {
-//	var request model.Transaction
-//
-//	if err := c.BindJSON(&request); err != nil {
-//		log.Println("Error binding JSON")
-//		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-//		return
-//	}
-//
-//	sig_ok, err := MyNode.Wallet.VerifySignature(request.Data, request.Signature, request.SenderAddress)
-//
-//	if err != nil {
-//		log.Println("Error validated signature", err)
-//		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not verify transaction"})
-//		return
-//	}
-//
-//	if sig_ok {
-//		log.Println("Signature was validated")
-//	}
-//
-//	for _, node := range MyNode.Ring {
-//		if node.PublicKey == request.SenderAddress {
-//			sender_balance := node.Balance - node.Stake
-//			if sender_balance < request.CalculateFee() {
-//				log.Println("Insufficient funds to send transaction")
-//				c.JSON(http.StatusBadRequest, gin.H{
-//					"error": "Insufficient funds to send transaction",
-//				})
-//				return
-//			}
-//
-//			node.Balance -= request.CalculateFee()
-//		}
-//
-//		c.JSON(http.StatusOK, gin.H{
-//			"message": "Transaction validated",
-//		})
-//	}
-//}
 
 // Receive Transaction
 // ===================

@@ -41,14 +41,14 @@ func (t *Transaction) String() string {
 	//return fmt.Sprintf("Transaction[SenderAddress: %v, ReceiverAddress: %d, TypeOfTransaction: %t, Data: %s, Nonce: %d, TransactionID: %s, Signature: %v]",
 	//	t.SenderAddress, t.ReceiverAddress, t.TypeOfTransaction, t.Data, t.Nonce, t.TransactionID, t.Signature)
 	return fmt.Sprintf("Transaction[SenderAddress: rsa_key,"+
-		" ReceiverAddress: %d,"+
+		" ReceiverAddress: %v,"+
 		" TypeOfTransaction: %t,"+
 		" Data: %s,"+
 		" Nonce: %d,"+
 		" TransactionID: %s,"+
 		" Signature: %v]",
-		t.ReceiverAddress, t.TypeOfTransaction, t.Data,
-		t.Nonce, t.TransactionID, t.Signature)
+		"t.ReceiverAddress", t.TypeOfTransaction, t.Data,
+		t.Nonce, t.TransactionID, "signature_number")
 }
 
 // JSONify serializes the Transaction into a JSON string
