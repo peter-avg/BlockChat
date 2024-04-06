@@ -49,18 +49,14 @@ func RegisterNode(c *gin.Context, myNode *model.Node) {
 	var err error
 	newTransaction.Signature, err = myNode.Wallet.SignTransaction(newTransaction)
 	newTransaction.SenderAddress = myNode.Wallet.PublicKey
-	log.Println("______ BEFORE BROADCAST ________")
 
 	go func() {
-		log.Println("______ INSIDE BROADCAST 1 ________")
 		defer wg.Done()
-		log.Println("______ INSIDE BROADCAST 2 ________")
 		if myNode.BroadcastTransaction(newTransaction) {
 			log.Println("Initial Transaction broadcast successful.")
 			//myNode.CurrentBlock.AddTransaction(*newTransaction, config.CAPACITY)
 		}
 	}()
-	log.Println("______ AFTER BROADCAST ________")
 	wg.Wait()
 
 	myNode.AddNewInfo(NewNodeInfo)

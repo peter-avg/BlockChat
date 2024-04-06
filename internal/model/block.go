@@ -2,6 +2,7 @@ package model
 
 import (
 	"block-chat/internal/config"
+	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -86,8 +87,12 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 	log.Println("Current Block Size : " + strconv.Itoa(numberOfTransactions))
 	var transactionFee = transaction.CalculateFee()
 	log.Println("Transaction Fee : " + strconv.FormatFloat(transactionFee, 'f', -1, 64))
+	//if transaction.ReceiverAddress.Equal(config.STAKE_PUBLIC_ADDRESS) {
+	//	log.Println("-- IsStakeTransaction --")
+	//	isStakeTransaction = true
+	//}
 	var isStakeTransaction = false
-	if transaction.ReceiverAddress.Equal(config.STAKE_PUBLIC_ADDRESS) {
+	if publicAddressesEqual(*transaction.ReceiverAddress, config.STAKE_PUBLIC_ADDRESS) {
 		isStakeTransaction = true
 	}
 	var isUnstakeTransaction = false
@@ -123,7 +128,9 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 		if nodeInfo.PublicKey.Equal(transaction.SenderAddress) {
 			myNode.Ring[i].SoftBalance -= transactionFee
 			if isStakeTransaction {
+				log.Printf("Adding %d to Ring[%d].SoftStake\n", transactionFee, i)
 				myNode.Ring[i].SoftStake += transactionFee
+				log.Printf("Ring[%d].SoftStake = %d\n", i, myNode.Ring[i].SoftStake)
 			}
 			if isUnstakeTransaction {
 				myNode.Ring[i].SoftBalance += myNode.Ring[i].SoftStake
@@ -144,7 +151,7 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 	var leaderId = 0
 	var totalStakeAmount float64 = 0
 	for _, nodeInfo := range myNode.Ring {
-		totalStakeAmount += nodeInfo.Stake
+		totalStakeAmount += nodeInfo.SoftStake
 	}
 	log.Printf("Total Stake Amount : %f\n", totalStakeAmount)
 	if totalStakeAmount != 0 {
@@ -158,7 +165,8 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 		log.Printf("Random Generated Number : %d\n", randomNumber)
 		var currSum float64 = 0
 		for _, nodeInfo := range myNode.Ring {
-			currSum += nodeInfo.Stake
+			currSum += nodeInfo.SoftStake
+
 			if int(math.Round(currSum)) >= randomNumber {
 				leaderId = nodeInfo.Id
 				break
@@ -218,4 +226,11 @@ func (b *Block) AddValidatedTransaction(transaction Transaction, myNode *Node) {
 			}
 		}
 	}
+}
+
+func publicAddressesEqual(publicAddress1 rsa.PublicKey, publicAddress2 rsa.PublicKey) bool {
+	if (publicAddress1.N.Cmp(publicAddress2.N) == 0) && (publicAddress1.E == publicAddress2.E) {
+		return true
+	}
+	return false
 }
