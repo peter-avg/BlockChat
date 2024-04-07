@@ -98,12 +98,12 @@ func main() {
 			var isPortSet bool = c.IsSet("port")
 
 			var apiUrl string = config.API_URL
-
+			log.Println("isTransactionSet : ", isTransactionSet)
 			if isPortSet {
 				log.Println("Using Port Specified : " + strconv.Itoa(portNumber))
 				apiUrl += strconv.Itoa(portNumber)
 			} else {
-				log.Println("Port not specified. Set to default : " + config.DEFAULT_PORT + ".")
+				log.Println("Port not specified! Set to default : " + config.DEFAULT_PORT + ".")
 				apiUrl += config.DEFAULT_PORT
 			}
 
@@ -114,13 +114,15 @@ func main() {
 			if isTransactionSet {
 				log.Println("txn")
 				data := make(map[string]interface{})
-				recipientIdString := c.Args().Get(0)
+				recipientIdStringOld := c.Args().Get(0)
+				messageOrBCC := c.Args().Get(1)
+				recipientIdString := recipientIdStringOld[2:]
+
 				recipientId, recipientIdConvertToIntError := strconv.Atoi(recipientIdString)
 				if recipientIdConvertToIntError != nil {
 					log.Println("Error : <recipient_id> must be of type int.\n" + recipientIdConvertToIntError.Error())
 				}
-				messageOrBCC := c.Args().Get(1)
-				log.Println("firstParam : " + recipientIdString)
+				log.Println("firstParam : ", recipientId)
 				log.Println("secondParam : " + messageOrBCC)
 
 				transactionUrl := apiUrl + "send_transaction"

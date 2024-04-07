@@ -102,7 +102,7 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) bool {
 			//myNode.Wallet.Balance += transactionFee
 			log.Println("\t\tBlock Chat Coins Received!\n\t\t--------------------\n\t\tYou got transferred " + strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64) + " Block Chat Coins!")
 		} else {
-			log.Println("\t\t\t\tMessage Received!\n\t\t--------------------\n" + transaction.Data)
+			log.Println("\t\t\t\tMessage Received!\n\t\t--------------------\n\t\t\t\t" + transaction.Data)
 		}
 	}
 

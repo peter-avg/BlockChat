@@ -23,7 +23,6 @@ var BOOTSTRAP_PORT string = config.BOOTSTRAP_PORT
 var CAPACITY int = config.CAPACITY
 
 func main() {
-
 	router := endpoints.InitRouter(&MyNode)
 
 	// IP,err := blockchain.GetIP();
