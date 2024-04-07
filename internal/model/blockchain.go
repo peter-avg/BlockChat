@@ -36,18 +36,21 @@ func (bc *Blockchain) JSONify() (string, error) {
 }
 
 // AddBlock adds a new block to the blockchain
-func (bc *Blockchain) AddBlock(block Block, node *Node) {
+func (bc *Blockchain) ValidateBlock(block *Block, node *Node) bool {
 	for i := range block.Transactions {
 		block.AddValidatedTransaction(block.Transactions[i], node)
 	}
 	node.SoftStateEqualToHardState()
-	bc.Chain = append(bc.Chain, block)
+	bc.Chain = append(bc.Chain, *block)
+	newBlock := NewBlock(block.Index+1, block.CurrentHash)
+	node.CurrentBlock = &newBlock
+	return true
 }
 
 func (bc *Blockchain) AddNewBlock() Block {
 	lastBlock := bc.Chain[len(bc.Chain)-1]
 	block := NewBlock(lastBlock.Index+1, lastBlock.CurrentHash)
-	bc.Chain = append(bc.Chain, *block)
+	bc.Chain = append(bc.Chain, block)
 	return bc.Chain[len(bc.Chain)-1]
 }
 

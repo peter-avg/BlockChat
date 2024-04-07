@@ -26,10 +26,10 @@ type Block struct {
 }
 
 // NewBlock creates and returns a new Block
-func NewBlock(index int, previousHash string) *Block {
+func NewBlock(index int, previousHash string) Block {
 	t := time.Now()
 	timestamp := t.UnixNano()
-	return &Block{
+	return Block{
 		Index:        index,
 		Timestamp:    timestamp,
 		Transactions: nil,
@@ -81,16 +81,10 @@ func (b Block) String() string {
 }
 
 // AddTransaction adds a new transaction to the block if there's capacity
-func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
+func (b *Block) AddTransaction(transaction Transaction, myNode *Node) bool {
 	var capacity = config.CAPACITY
-	var numberOfTransactions = len(b.Transactions)
-	log.Println("Current Block Size : " + strconv.Itoa(numberOfTransactions))
 	var transactionFee = transaction.CalculateFee()
 	log.Println("Transaction Fee : " + strconv.FormatFloat(transactionFee, 'f', -1, 64))
-	//if transaction.ReceiverAddress.Equal(config.STAKE_PUBLIC_ADDRESS) {
-	//	log.Println("-- IsStakeTransaction --")
-	//	isStakeTransaction = true
-	//}
 	var isStakeTransaction = false
 	if publicAddressesEqual(*transaction.ReceiverAddress, config.STAKE_PUBLIC_ADDRESS) {
 		isStakeTransaction = true
@@ -128,9 +122,8 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 		if nodeInfo.PublicKey.Equal(transaction.SenderAddress) {
 			myNode.Ring[i].SoftBalance -= transactionFee
 			if isStakeTransaction {
-				log.Printf("Adding %d to Ring[%d].SoftStake\n", transactionFee, i)
+				log.Printf("Adding %f to Ring[%d].SoftStake\n", transactionFee, i)
 				myNode.Ring[i].SoftStake += transactionFee
-				log.Printf("Ring[%d].SoftStake = %d\n", i, myNode.Ring[i].SoftStake)
 			}
 			if isUnstakeTransaction {
 				myNode.Ring[i].SoftBalance += myNode.Ring[i].SoftStake
@@ -140,20 +133,21 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 	}
 
 	// TODO: process if block is not full
-	if numberOfTransactions+1 < capacity {
-		b.Transactions = append(b.Transactions, transaction)
-		return
+	b.Transactions = append(b.Transactions, transaction)
+	log.Println("NewBlockSize : ", len(b.Transactions))
+	if len(b.Transactions) < capacity {
+		return false
 	}
+	return true
+}
 
-	// TODO : process if block is full
-	// TODO : maybe define mintBlock()
-	// TODO : elect new leader
+func (b *Block) ElectLeader(myNode *Node) {
 	var leaderId = 0
 	var totalStakeAmount float64 = 0
 	for _, nodeInfo := range myNode.Ring {
 		totalStakeAmount += nodeInfo.SoftStake
 	}
-	log.Printf("Total Stake Amount : %f\n", totalStakeAmount)
+	//log.Printf("Total Stake Amount : %f\n", totalStakeAmount)
 	if totalStakeAmount != 0 {
 		var seedString = myNode.Chain.GetLastBlock().CurrentHash
 		hash := fnv.New64()
@@ -175,10 +169,6 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 	}
 	log.Printf("Elected Leader Node Id : %d\n", leaderId)
 
-	// TODO : implement new endpoint for the leader to validate block
-	// TODO : implement new endpoint for other nodes to receive
-	// 		  & add the validated block onto their blockchain
-
 	if myNode.Id == leaderId {
 		log.Printf("I am the leader node with myNode.id == %d\n", myNode.Id)
 		b.MintBlock(myNode)
@@ -186,6 +176,9 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) {
 }
 
 func (b *Block) MintBlock(myNode *Node) {
+	myNode.Chain.ValidateBlock(b, myNode)
+	myNode.BroadcastValidatedBlock(b)
+
 }
 
 // AddTransaction adds a new transaction to the block if there's capacity

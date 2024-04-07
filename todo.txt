@@ -35,7 +35,7 @@ Proof-Of-Stake Implementation :
     3. Implementing ReceiveValidatedBlock() - this will be the only
        function that will modify the Ring []NodeInfo array
        then check that the Ring is equal to SoftRing
-
+        DONE!!
     NEEDS SMALL IMPLEMENTATION && TESTING
 
     4. When to release stakes ? - Release stakes when a stake

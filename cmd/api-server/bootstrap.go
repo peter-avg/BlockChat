@@ -77,7 +77,7 @@ func main() {
 		GenesisBlock.Hashify()
 		GenesisBlock.CurrentHash = "GENESIS_BLOCK"
 		// Insert the Genesis Block into the Blockchain
-		MyNode.Chain.AddBlock(GenesisBlock, &MyNode)
+		MyNode.Chain.ValidateBlock(&GenesisBlock, &MyNode)
 		log.Println("Last Block : " + MyNode.Chain.GetLastBlock().String())
 		router.Run(BOOTSTRAP_IP + ":" + BOOTSTRAP_PORT)
 
@@ -103,7 +103,6 @@ func main() {
 		}
 		MyNode.Id, MyNode.Chain, MyNode.Ring, MyNode.Wallet.Balance, MyNode.CurrentBlock, err = utils.DeserializeRegisterNodeResponse(response)
 		if err != nil {
-			log.Println("Line 105")
 			log.Fatal(err)
 		}
 		log.Println("MyNode : ", MyNode.String())

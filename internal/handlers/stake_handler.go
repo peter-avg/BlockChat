@@ -50,16 +50,21 @@ func SetStake(c *gin.Context, myNode *model.Node) {
 			}
 		}
 	}
+	isBlockFull := myNode.CurrentBlock.AddTransaction(*stakeTransaction, myNode)
+
 	if myNode.BroadcastTransaction(stakeTransaction) {
 		log.Println("Stake Transaction broadcasted")
-		myNode.CurrentBlock.AddTransaction(*stakeTransaction, myNode)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Stake Transaction of amount " + strconv.FormatFloat(stakeAmount, 'f', -1, 64) + " broadcasted",
 		})
-		return
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Stake transaction not sent",
+		})
 	}
 
-	c.JSON(http.StatusBadRequest, gin.H{
-		"error": "Stake transaction not sent",
-	})
+	if isBlockFull {
+		myNode.CurrentBlock.ElectLeader(myNode)
+	}
+
 }

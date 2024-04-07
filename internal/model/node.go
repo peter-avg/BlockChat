@@ -36,7 +36,7 @@ type Node struct {
 	Wallet       Wallet     `json:"wallet"`
 	Chain        Blockchain `json:"chain"`
 	Ring         []NodeInfo `json:"ring"`
-	CurrentBlock Block      `json:"CurrentBlock"`
+	CurrentBlock *Block     `json:"CurrentBlock"`
 }
 
 // NewNodeInfo creates and returns a new NodeInfo
@@ -114,11 +114,11 @@ func (n *Node) JSONify() (string, error) {
 // ====================
 func (n *Node) CreateNewBlock() {
 	if len(n.Chain.Chain) == 0 {
-		new_block := NewBlock(0, "1")
-		n.CurrentBlock = *new_block
+		newBlock := NewBlock(0, "1")
+		n.CurrentBlock = &newBlock
 	} else {
-		new_block := NewBlock(0, "0")
-		n.CurrentBlock = *new_block
+		newBlock := NewBlock(0, "0")
+		n.CurrentBlock = &newBlock
 	}
 }
 
@@ -265,7 +265,7 @@ func (n *Node) SendTransaction(transaction *Transaction, IP string, PORT string,
 
 // Broadcast validated block to all nodes
 // =================================
-func (n *Node) BroadcastValidatedBlock(block Block) bool {
+func (n *Node) BroadcastValidatedBlock(block *Block) bool {
 	var wg sync.WaitGroup
 	errChV := make(chan error, len(n.Ring))
 
@@ -275,7 +275,7 @@ func (n *Node) BroadcastValidatedBlock(block Block) bool {
 
 			go func(node NodeInfo) {
 				defer wg.Done()
-				if !n.ValidateBlock(block, node.IP, node.PORT, node.Id) {
+				if !n.ValidateBlock(*block, node.IP, node.PORT, node.Id) {
 					errChV <- errors.New("Sending failed for validated block for node : " + strconv.Itoa(node.Id))
 				}
 			}(node)

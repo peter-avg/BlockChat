@@ -61,11 +61,15 @@ func ValidateTransaction(c *gin.Context, myNode *model.Node) {
 		TransactionID:     "",
 		Signature:         request.Signature,
 	}
-	myNode.CurrentBlock.AddTransaction(receivedTransaction, myNode)
-	// Send response
+	isBlockFull := myNode.CurrentBlock.AddTransaction(receivedTransaction, myNode)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Transaction received",
 	})
+	if isBlockFull {
+		myNode.CurrentBlock.ElectLeader(myNode)
+	}
+	// Send response
+
 }
 
 // Send a transaction to another node
@@ -115,18 +119,21 @@ func SendTransaction(c *gin.Context, myNode *model.Node) {
 			}
 		}
 	}
-	myNode.CurrentBlock.AddTransaction(*newTransaction, myNode)
+	isBlockFull := myNode.CurrentBlock.AddTransaction(*newTransaction, myNode)
 	if myNode.BroadcastTransaction(newTransaction) {
 		log.Println("Transaction broadcast successful.")
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Transaction sent",
 		})
-		return
-	}
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Transaction not sent",
+		})
 
-	c.JSON(http.StatusBadRequest, gin.H{
-		"error": "Transaction not sent",
-	})
+	}
+	if isBlockFull {
+		myNode.CurrentBlock.ElectLeader(myNode)
+	}
 
 }
 
