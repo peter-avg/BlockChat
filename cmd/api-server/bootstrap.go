@@ -34,10 +34,8 @@ func main() {
 	var nodes int
 	var bootstrap bool
 
-	log.Println("Hello i am a node")
-
-	flag.StringVar(&PORT, "p", "5000", "Port to run on")
-	flag.IntVar(&nodes, "n", 3, "Number of nodes in chain")
+	flag.StringVar(&PORT, "p", "9921", "Port to run on")
+	flag.IntVar(&nodes, "n", 5, "Number of nodes in chain")
 	flag.BoolVar(&bootstrap, "b", false, "If node is bootstrap node")
 
 	flag.Parse()
@@ -96,7 +94,6 @@ func main() {
 			log.Fatal(err)
 		}
 		if response.StatusCode == http.StatusBadRequest {
-			log.Println("Line 100")
 			log.Println(utils.GetErrorMessageFromResponse(response))
 			return
 		}

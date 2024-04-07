@@ -98,7 +98,6 @@ func main() {
 			var isPortSet bool = c.IsSet("port")
 
 			var apiUrl string = config.API_URL
-			log.Println("isTransactionSet : ", isTransactionSet)
 			if isPortSet {
 				log.Println("Using Port Specified : " + strconv.Itoa(portNumber))
 				apiUrl += strconv.Itoa(portNumber)
@@ -122,8 +121,8 @@ func main() {
 				if recipientIdConvertToIntError != nil {
 					log.Println("Error : <recipient_id> must be of type int.\n" + recipientIdConvertToIntError.Error())
 				}
-				log.Println("firstParam : ", recipientId)
-				log.Println("secondParam : " + messageOrBCC)
+				//log.Println("firstParam : ", recipientId)
+				//log.Println("secondParam : " + messageOrBCC)
 
 				transactionUrl := apiUrl + "send_transaction"
 				if recipientIdString == "" {
@@ -139,7 +138,7 @@ func main() {
 						fmt.Println("Usage: -{t,-t} <recipient_address> <Message or Number of BlockChat Coins> : To produce a transaction")
 						return nil
 					}
-					log.Println("It is a message")
+					//log.Println("It is a message")
 
 					data["recipient_id"] = recipientId
 					data["message_or_bitcoin"] = 0

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -16,25 +15,18 @@ import (
 // Receive a RegisterNodeResponse and convert to Ring and Chain
 // ============================================================
 func DeserializeRegisterNodeResponse(response *http.Response) (int, model.Blockchain, []model.NodeInfo, float64, *model.Block, error) {
-	log.Println("Line 19")
-
 	body, err := io.ReadAll(response.Body)
-	log.Println(string(body))
 	if err != nil {
 		return -1, model.Blockchain{}, []model.NodeInfo{}, 0, &model.Block{}, err
 	}
 
 	var response_data model.RegisterNodeResponse
 	if err := json.Unmarshal(body, &response_data); err != nil {
-		log.Println("Line 27")
-
 		return -1, model.Blockchain{}, []model.NodeInfo{}, 0, &model.Block{}, err
 	}
 
 	var blockchain model.Blockchain
 	if err := json.Unmarshal([]byte(response_data.Blockchain), &blockchain); err != nil {
-		log.Println("Line 32")
-
 		return response_data.Id, model.Blockchain{}, []model.NodeInfo{}, 0, &model.Block{}, err
 	}
 
@@ -48,7 +40,6 @@ func DeserializeRegisterNodeResponse(response *http.Response) (int, model.Blockc
 		return response_data.Id, model.Blockchain{}, ring, 0, &model.Block{}, err
 	}
 
-	log.Println("response_data.id : " + strconv.Itoa(response_data.Id))
 	return response_data.Id, blockchain, ring, response_data.Balance, &currentBlock, nil
 }
 

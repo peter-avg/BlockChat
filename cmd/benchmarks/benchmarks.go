@@ -35,6 +35,18 @@ func main() {
 	for i := 0; i < *numberOfClients; i++ {
 		ports[i] = 5000 + i
 	}
+	fmt.Println("Staking Starts...")
+	for i := 0; i < *numberOfClients; i++ {
+		var command = exec.Command("cli", "--port", strconv.Itoa(ports[i]), "--stake", strconv.Itoa(10))
+		command.Stdout = os.Stdout
+		command.Stderr = os.Stderr
+		err := command.Run()
+		if err != nil {
+			log.Fatalf("Stake command for node %d failed with %s\n", i, err)
+		}
+	}
+	fmt.Println("Staking Finishes...")
+
 	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Println("Error getting current working directory:", err)
@@ -57,32 +69,30 @@ func main() {
 				return
 			}
 			defer file.Close()
-			if i == 0 {
-				scanner := bufio.NewScanner(file)
+			scanner := bufio.NewScanner(file)
 
-				for scanner.Scan() {
-					line := scanner.Text()
-					lineValue := line
-					parts := strings.SplitN(lineValue, " ", 2)
+			for scanner.Scan() {
+				line := scanner.Text()
+				lineValue := line
+				parts := strings.SplitN(lineValue, " ", 2)
 
-					var command = exec.Command("cli", "--port", strconv.Itoa(ports[i]), "-t", parts[0], parts[1])
-					//output, err := command.Output()
-					//if err != nil {
-					//	fmt.Printf("Error getting output for file %s, line %s: %s\n", fileName, line, err)
-					//}
-					//fmt.Printf("Output for file %s, line %s: %s\n", fileName, line, string(output))
-					command.Stdout = os.Stdout
-					command.Stderr = os.Stderr
-					err := command.Run()
-					if err != nil {
-						log.Fatalf("cmd.Run() failed with %s\n", err)
-					}
+				var command = exec.Command("cli", "--port", strconv.Itoa(ports[i]), "-t", parts[0], parts[1])
+				//output, err := command.Output()
+				//if err != nil {
+				//	fmt.Printf("Error getting output for file %s, line %s: %s\n", fileName, line, err)
+				//}
+				//fmt.Printf("Output for file %s, line %s: %s\n", fileName, line, string(output))
+				command.Stdout = os.Stdout
+				command.Stderr = os.Stderr
+				err := command.Run()
+				if err != nil {
+					log.Fatalf("cmd.Run() failed with %s\n", err)
 				}
+			}
 
-				if err := scanner.Err(); err != nil {
-					fmt.Printf("Error scanning file %s: %s\n", fileName, err)
-					return
-				}
+			if err := scanner.Err(); err != nil {
+				fmt.Printf("Error scanning file %s: %s\n", fileName, err)
+				return
 			}
 		}(i)
 	}
