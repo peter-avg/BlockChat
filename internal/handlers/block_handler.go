@@ -11,7 +11,8 @@ import (
 // Get Last Block from Blockchain
 // ==============================
 func GetLastBlock(c *gin.Context, MyNode *model.Node) {
-	var lastValidatedBlock = MyNode.Chain.GetLastBlock()
+	//var lastValidatedBlock = MyNode.Chain.GetLastBlock()
+	var lastValidatedBlock = MyNode.CurrentBlock
 	var responseString = "Last Block :\n\t" + lastValidatedBlock.String()
 	c.String(http.StatusOK, responseString)
 }

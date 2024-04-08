@@ -95,8 +95,6 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) bool {
 		isStakeTransaction = false
 	}
 
-	// TODO: refresh myNode.wallet & nodeInfo.balance
-	// TODO: add the transaction to the current block
 	if myNode.Wallet.PublicKey.Equal(transaction.ReceiverAddress) {
 		if transaction.TypeOfTransaction == true {
 			//myNode.Wallet.Balance += transactionFee
@@ -116,7 +114,7 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) bool {
 	}
 
 	for i, nodeInfo := range myNode.Ring {
-		if nodeInfo.PublicKey.Equal(transaction.ReceiverAddress) && transaction.TypeOfTransaction == true {
+		if nodeInfo.PublicKey.Equal(transaction.ReceiverAddress) {
 			myNode.Ring[i].SoftBalance += transactionFee
 		}
 		if nodeInfo.PublicKey.Equal(transaction.SenderAddress) {

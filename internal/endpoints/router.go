@@ -26,13 +26,13 @@ func InitRouter(myNode *model.Node) *gin.Engine {
 	router.POST("/blockchat_api/validate_transaction", func(c *gin.Context) {
 		handlers.ValidateTransaction(c, myNode)
 	})
-	router.POST("/blockchat_api/receive_transaction", func(c *gin.Context) {
-		handlers.ReceiveTransaction(c, myNode)
-	})
 	router.POST("/blockchat_api/receive_validated_block", func(c *gin.Context) {
 		handlers.ReceiveValidatedBlock(c, myNode)
 	})
 
+	router.POST("/blockchat_api/receive_transaction", func(c *gin.Context) {
+		handlers.ReceiveTransaction(c, myNode)
+	})
 	// must make one for new block addition
 
 	// Client Endpoints of API
