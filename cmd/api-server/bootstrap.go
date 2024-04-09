@@ -98,6 +98,7 @@ func main() {
 			return
 		}
 		MyNode.Id, MyNode.Chain, MyNode.Ring, MyNode.Wallet.Balance, MyNode.CurrentBlock, err = utils.DeserializeRegisterNodeResponse(response)
+		MyNode.Wallet.Nonce = MyNode.CurrentBlock.Transactions[len(MyNode.CurrentBlock.Transactions)-1].Nonce
 		if err != nil {
 			log.Fatal(err)
 		}

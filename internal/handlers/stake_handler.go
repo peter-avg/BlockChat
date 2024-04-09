@@ -50,8 +50,9 @@ func SetStake(c *gin.Context, myNode *model.Node) {
 			}
 		}
 	}
-	isBlockFull := myNode.CurrentBlock.AddTransaction(*stakeTransaction, myNode)
-
+	//isBlockFull := myNode.CurrentBlock.AddTransaction(*stakeTransaction, myNode)
+	txnPoolObj := model.TransactionInPool{Txn: *stakeTransaction, IsSendTxn: true}
+	model.TransactionPool <- txnPoolObj
 	if myNode.BroadcastTransaction(stakeTransaction) {
 		log.Println("Stake Transaction broadcasted")
 		c.JSON(http.StatusOK, gin.H{
@@ -63,8 +64,8 @@ func SetStake(c *gin.Context, myNode *model.Node) {
 		})
 	}
 
-	if isBlockFull {
-		myNode.CurrentBlock.ElectLeader(myNode)
-	}
+	//if isBlockFull {
+	//	myNode.CurrentBlock.ElectLeader(myNode)
+	//}
 
 }

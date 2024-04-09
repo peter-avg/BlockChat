@@ -133,6 +133,7 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) bool {
 	// TODO: process if block is not full
 	b.Transactions = append(b.Transactions, transaction)
 	log.Println("NewBlockSize : ", len(b.Transactions))
+	log.Printf("txn.Nonce = %d --> len(txns) = %d\n", transaction.Nonce, len(b.Transactions))
 	if len(b.Transactions) < capacity {
 		return false
 	}
@@ -176,13 +177,14 @@ func (b *Block) ElectLeader(myNode *Node) {
 func (b *Block) MintBlock(myNode *Node) {
 	myNode.Chain.ValidateBlock(b, myNode)
 	myNode.BroadcastValidatedBlock(b)
-
+	IsBlockValidating = false
+	BlockValidationSignal <- struct{}{}
 }
 
 // AddTransaction adds a new transaction to the block if there's capacity
 func (b *Block) AddValidatedTransaction(transaction Transaction, myNode *Node) {
 	var transactionFee = transaction.CalculateFee()
-	log.Println("Transaction Fee : " + strconv.FormatFloat(transactionFee, 'f', -1, 64))
+	//log.Println("Transaction Fee : " + strconv.FormatFloat(transactionFee, 'f', -1, 64))
 	var isStakeTransaction = false
 	if transaction.ReceiverAddress.Equal(config.STAKE_PUBLIC_ADDRESS) {
 		isStakeTransaction = true

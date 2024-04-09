@@ -8,7 +8,6 @@ import (
 )
 
 func InitRouter(myNode *model.Node) *gin.Engine {
-
 	router := gin.Default()
 	router.Use(cors.Default())
 
@@ -30,17 +29,11 @@ func InitRouter(myNode *model.Node) *gin.Engine {
 		handlers.ReceiveValidatedBlock(c, myNode)
 	})
 
-	router.POST("/blockchat_api/receive_transaction", func(c *gin.Context) {
-		handlers.ReceiveTransaction(c, myNode)
-	})
-	// must make one for new block addition
-
 	// Client Endpoints of API
 	// =======================
 	router.POST("/blockchat_api/set_stake", func(c *gin.Context) {
 		handlers.SetStake(c, myNode)
 	})
-
 	router.POST("/blockchat_api/send_transaction", func(c *gin.Context) {
 		handlers.SendTransaction(c, myNode)
 	})
@@ -50,6 +43,8 @@ func InitRouter(myNode *model.Node) *gin.Engine {
 	router.GET("/blockchat_api/get_last_block", func(c *gin.Context) {
 		handlers.GetLastBlock(c, myNode)
 	})
+
+	go processTransactions(myNode)
 
 	return router
 }

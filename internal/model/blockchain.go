@@ -40,6 +40,7 @@ func (bc *Blockchain) ValidateBlock(block *Block, node *Node) bool {
 	for i := range block.Transactions {
 		block.AddValidatedTransaction(block.Transactions[i], node)
 	}
+	node.Wallet.Nonce = block.Transactions[len(block.Transactions)-1].Nonce
 	node.SoftStateEqualToHardState()
 	bc.Chain = append(bc.Chain, *block)
 	newBlock := NewBlock(block.Index+1, block.CurrentHash)

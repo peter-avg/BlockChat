@@ -1,3 +1,28 @@
+Now I need to implement SYNCHRONIZATION :
+    I define these global variables :
+       transactionPool chan model.Transaction :
+        If a block becomes full and the validation process begins,
+        all the incoming transaction must not be added to a block
+        but rather must be stored in a transaction pool.
+        Each transaction in this pool is going to be processed when
+        the block is validated.
+       isBlockValidating of type bool :
+         Indicates whether this node is in process of validating a
+         block
+       blockValidationSignal chan struct{} :
+         Indicates when this node finished the process of validating this
+         a block
+       mtx sync.Mutex :
+         A mutex to synchronize access to the transactionPool
+
+
+
+
+
+
+
+
+
 Proof-Of-Stake Implementation :
     1. Differentiate Hard-State and Soft-State
        -> Hard-State is the state that is inferred from the
@@ -45,3 +70,8 @@ Proof-Of-Stake Implementation :
     5. Implement the txn fee mechanism - refactor various blocks
        of code - Give the elected leader their gathered fees
        in the MintBlock() function (?)
+
+
+
+
+

@@ -99,7 +99,7 @@ func main() {
 
 			var apiUrl string = config.API_URL
 			if isPortSet {
-				log.Println("Using Port Specified : " + strconv.Itoa(portNumber))
+				//log.Println("Using Port Specified : " + strconv.Itoa(portNumber))
 				apiUrl += strconv.Itoa(portNumber)
 			} else {
 				log.Println("Port not specified! Set to default : " + config.DEFAULT_PORT + ".")
@@ -111,7 +111,6 @@ func main() {
 			// Make Transaction Function Implementation
 			// ========================================
 			if isTransactionSet {
-				log.Println("txn")
 				data := make(map[string]interface{})
 				recipientIdStringOld := c.Args().Get(0)
 				messageOrBCC := c.Args().Get(1)
@@ -168,7 +167,10 @@ func main() {
 				r.Header.Set("Content-Type", "application/json")
 
 				client := &http.Client{}
+				log.Printf("Before the txn : %d %s (port : %d)", recipientId, data["data"], portNumber)
 				resp, err := client.Do(r)
+				log.Printf("After the txn : %d %s (port : %d)", recipientId, data["data"], portNumber)
+
 				if err != nil {
 					fmt.Println("Error sending request:", err)
 					return nil

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -88,6 +89,7 @@ func main() {
 				if err != nil {
 					log.Fatalf("cmd.Run() failed with %s\n", err)
 				}
+				time.Sleep(time.Duration(10*i) * time.Millisecond)
 			}
 
 			if err := scanner.Err(); err != nil {

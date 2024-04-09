@@ -30,6 +30,7 @@ func ValidateTransaction(c *gin.Context, myNode *model.Node) {
 	if sig_ok {
 		log.Println("Signature was validated")
 	}
+
 	for _, node := range myNode.Ring {
 		if node.PublicKey == request.SenderAddress {
 			senderBalance := node.SoftBalance - node.SoftStake
@@ -61,13 +62,22 @@ func ValidateTransaction(c *gin.Context, myNode *model.Node) {
 		TransactionID:     "",
 		Signature:         request.Signature,
 	}
-	isBlockFull := myNode.CurrentBlock.AddTransaction(receivedTransaction, myNode)
+	//isBlockFull := myNode.CurrentBlock.AddTransaction(receivedTransaction, myNode)
+	log.Println("Receives Txn")
+	model.Mtx.Lock()
+
+	txnPoolObj := model.TransactionInPool{Txn: receivedTransaction, IsSendTxn: false}
+	model.TransactionPool <- txnPoolObj
+	log.Println("Pushes txn to the txnPool")
+
+	model.Mtx.Unlock()
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Transaction received",
 	})
-	if isBlockFull {
-		myNode.CurrentBlock.ElectLeader(myNode)
-	}
+	//if isBlockFull {
+	//	myNode.CurrentBlock.ElectLeader(myNode)
+	//}
 	// Send response
 
 }
@@ -119,7 +129,11 @@ func SendTransaction(c *gin.Context, myNode *model.Node) {
 			}
 		}
 	}
-	isBlockFull := myNode.CurrentBlock.AddTransaction(*newTransaction, myNode)
+	model.Mtx.Lock()
+	txnPoolObj := model.TransactionInPool{Txn: *newTransaction, IsSendTxn: true}
+	model.TransactionPool <- txnPoolObj
+	model.Mtx.Unlock()
+	//isBlockFull := myNode.CurrentBlock.AddTransaction(*newTransaction, myNode)
 	if myNode.BroadcastTransaction(newTransaction) {
 		log.Println("Transaction broadcast successful.")
 		c.JSON(http.StatusOK, gin.H{
@@ -129,46 +143,6 @@ func SendTransaction(c *gin.Context, myNode *model.Node) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Transaction not sent",
 		})
-
 	}
-	if isBlockFull {
-		myNode.CurrentBlock.ElectLeader(myNode)
-	}
-
-}
-
-// Receive Transaction
-// ===================
-func ReceiveTransaction(c *gin.Context, myNode *model.Node) {
-	var request model.Transaction
-
-	if err := c.BindJSON(&request); err != nil {
-		log.Println("Error binding JSON")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	typeOfData, err := strconv.ParseBool(fmt.Sprint(request.TypeOfTransaction))
-
-	if err != nil {
-		log.Println(err)
-	}
-
-	receivedTransaction := model.Transaction{
-		SenderAddress:     request.SenderAddress,
-		ReceiverAddress:   request.ReceiverAddress,
-		TypeOfTransaction: typeOfData,
-		Data:              request.Data,
-		Nonce:             myNode.Wallet.AddTransaction(),
-		TransactionID:     "",
-		Signature:         request.Signature,
-	}
-
-	myNode.CurrentBlock.AddTransaction(receivedTransaction, myNode)
-
-	// Send response
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Transaction received",
-	})
 
 }

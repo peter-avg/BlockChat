@@ -1,7 +1,6 @@
 package model
 
 import (
-	"block-chat/internal/config"
 	// "fmt"
 	"errors"
 	"fmt"
@@ -230,36 +229,6 @@ func (n *Node) ValidateTransaction(transaction *Transaction, IP string, PORT str
 		return true
 	}
 
-	return false
-}
-
-// Send a transaction to a node
-// =============================
-func (n *Node) SendTransaction(transaction *Transaction, IP string, PORT string, ID int) bool {
-
-	send_address := "http://" + IP + ":" + PORT + "/blockchat_api/receive_transaction"
-
-	request_body, err := json.Marshal(transaction)
-	if err != nil {
-		log.Println(err)
-		return false
-	}
-
-	response, err := http.Post(send_address, "application/json", bytes.NewBuffer(request_body))
-	if err != nil {
-		log.Println(err)
-		return false
-	}
-
-	if response.StatusCode == 200 {
-		if transaction.ReceiverAddress.N == config.STAKE_PUBLIC_ADDRESS.N {
-			log.Println("Stake Transaction of amount "+strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64)+" sent to Node ", ID)
-		} else {
-			log.Println("Transaction of amount "+strconv.FormatFloat(transaction.CalculateFee(), 'f', -1, 64)+" sent to Node ", ID)
-		}
-		return true
-	}
-	log.Println("Transaction failed to send to Node ", ID)
 	return false
 }
 
