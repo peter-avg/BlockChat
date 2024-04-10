@@ -1,5 +1,7 @@
 # BlockChat: A Blockchain Application in Golang
 
+![Logo](logo.png)
+
 Welcome to BlockChat, a comprehensive blockchain application built entirely in Golang. This application
 showcases a decentralized blockchain system with CLI and Webapp interfaces, allowing users to join the
 blockchain network, send messages or Bitcoin, and engage in transactions with the assurance of a Proof
