@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	numberOfClients := flag.Int("numberOfClients", 0, "Number of clients")
+	numberOfClients := flag.Int("n", 0, "Number of clients")
 
 	flag.Parse()
 

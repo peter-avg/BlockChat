@@ -19,3 +19,4 @@ var STAKE_PUBLIC_ADDRESS rsa.PublicKey = rsa.PublicKey{
 	N: big.NewInt(0),
 	E: 0,
 }
+var INITIAL_BCC int = 10000

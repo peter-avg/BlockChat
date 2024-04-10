@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"block-chat/internal/config"
 	"block-chat/internal/model"
 	"crypto/rsa"
 	"encoding/json"
@@ -43,7 +44,7 @@ func RegisterNode(c *gin.Context, myNode *model.Node) {
 	newTransaction := model.NewTransaction(
 		&publicKey,
 		true,
-		"1000",
+		strconv.Itoa(config.INITIAL_BCC),
 		myNode.Wallet.AddTransaction(),
 	)
 	var err error

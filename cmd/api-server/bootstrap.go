@@ -65,7 +65,7 @@ func main() {
 			SenderAddress:     &config.STAKE_PUBLIC_ADDRESS,
 			ReceiverAddress:   MyNode.Wallet.PublicKey,
 			TypeOfTransaction: true,
-			Data:              fmt.Sprint(1000 * nodes),
+			Data:              fmt.Sprint(config.INITIAL_BCC * nodes),
 			Nonce:             0,
 			TransactionID:     "",
 			Signature:         nil,
@@ -101,6 +101,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		MyNode.Wallet.Nonce = MyNode.CurrentBlock.Transactions[len(MyNode.CurrentBlock.Transactions)-1].Nonce
+		//unvalidatedBlock := model.NewBlock(MyNode.CurrentBlock.Index+1, MyNode.CurrentBlock.CurrentHash)
+		//MyNode.UnvalidatedBlock = &unvalidatedBlock
 		log.Println("MyNode : ", MyNode.String())
 		router.Run(BOOTSTRAP_IP + ":" + PORT)
 	}

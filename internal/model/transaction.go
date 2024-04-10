@@ -75,7 +75,7 @@ func (t *Transaction) CalculateFee() float64 {
 		res, err := strconv.ParseFloat(t.Data, 64)
 
 		if err != nil {
-			println("Error converting data to int")
+			println("Error converting data to float")
 			return 0
 		}
 		return res

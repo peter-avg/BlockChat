@@ -29,10 +29,11 @@ type Block struct {
 func NewBlock(index int, previousHash string) Block {
 	t := time.Now()
 	timestamp := t.UnixNano()
+	var transactions []Transaction
 	return Block{
 		Index:        index,
 		Timestamp:    timestamp,
-		Transactions: nil,
+		Transactions: transactions,
 		Validator:    0,
 		PreviousHash: previousHash,
 		CurrentHash:  "",
@@ -83,6 +84,10 @@ func (b Block) String() string {
 // AddTransaction adds a new transaction to the block if there's capacity
 func (b *Block) AddTransaction(transaction Transaction, myNode *Node) bool {
 	var capacity = config.CAPACITY
+	// somehow handle if transaction is over capacity (store it somewhere?)
+	//if len(b.Transactions) >= capacity {
+	//	myNode.CurrentBlock.Transactions = append(myNode.CurrentBlock.Transactions, transaction)
+	//}
 	var transactionFee = transaction.CalculateFee()
 	log.Println("Transaction Fee : " + strconv.FormatFloat(transactionFee, 'f', -1, 64))
 	var isStakeTransaction = false
@@ -131,6 +136,10 @@ func (b *Block) AddTransaction(transaction Transaction, myNode *Node) bool {
 	}
 
 	// TODO: process if block is not full
+	if b.Transactions == nil {
+		var transactionList []Transaction
+		b.Transactions = transactionList
+	}
 	b.Transactions = append(b.Transactions, transaction)
 	log.Println("NewBlockSize : ", len(b.Transactions))
 	if len(b.Transactions) < capacity {
@@ -225,3 +234,11 @@ func publicAddressesEqual(publicAddress1 rsa.PublicKey, publicAddress2 rsa.Publi
 	}
 	return false
 }
+
+//func UnvalidatedBlockToCurrentBlock(node *Node) {
+//	for len(node.UnvalidatedBlock.Transactions) > 0 {
+//		txn := node.UnvalidatedBlock.Transactions[0]
+//		node.UnvalidatedBlock.Transactions = node.UnvalidatedBlock.Transactions[1:]
+//		node.CurrentBlock.AddTransaction(txn, node)
+//	}
+//}

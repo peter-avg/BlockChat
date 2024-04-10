@@ -5,15 +5,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 // Get Last Block from Blockchain
 // ==============================
 func GetLastBlock(c *gin.Context, MyNode *model.Node) {
-	//var lastValidatedBlock = MyNode.Chain.GetLastBlock()
-	var lastValidatedBlock = MyNode.CurrentBlock
-	var responseString = "Last Block :\n\t" + lastValidatedBlock.String()
+	var lastValidatedBlock = MyNode.Chain.GetLastBlock()
+	var responseString = ""
+	responseString += "Last Validated Block :\n\t" + lastValidatedBlock.String() + "\n"
+	var currentBlock = MyNode.CurrentBlock
+	responseString = "Current Block :\n\t" + currentBlock.String()
 	c.String(http.StatusOK, responseString)
 }
 
@@ -25,9 +26,7 @@ func ReceiveValidatedBlock(c *gin.Context, myNode *model.Node) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	log.Println("Received Block Id : " + strconv.Itoa(request.Index))
 	myNode.Chain.ValidateBlock(&request, myNode)
-	log.Println("New Block Added : " + request.String())
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Block Validated",

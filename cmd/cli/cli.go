@@ -28,7 +28,8 @@ type LastBlockData struct {
 }
 
 type BalanceResponse struct {
-	Balance float32 `json:"balance"`
+	Balance   float32 `json:"balance"`
+	SoftStake float32 `json:"soft_stake"`
 }
 
 var portNumber int
@@ -257,7 +258,7 @@ func main() {
 				if err := json.Unmarshal(body, &apiResponse); err != nil {
 					log.Fatal(err)
 				}
-				fmt.Printf("Your Balance is : %.3f BlockChat Coins.\n", apiResponse.Balance)
+				fmt.Printf("Your Balance is : %.3f BlockChat Coins.\nYour Stake is : %.3f", apiResponse.Balance, apiResponse.SoftStake)
 			}
 
 			return nil
